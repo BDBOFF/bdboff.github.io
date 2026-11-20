@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Tableau de bord</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<!-- Plein écran quand la page est ajoutée à l'écran d'accueil de l'iPad -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maison">
+<meta name="format-detection" content="telephone=no">
+<!--
+  Compatibilité iPad mini 1 / iOS 9.3.6 / Safari 9 :
+  - CSS : flexbox simple uniquement (préfixe -webkit- en plus), pas de Grid,
+    pas de "gap", pas de variables CSS.
+  - JS : ES5 uniquement (var, function, XMLHttpRequest), pas de fetch,
+    pas de fonctions fléchées, pas de let/const, pas de gabarits `...`.
+-->
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    background: #E9EDF2;
+    color: #2E3440;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-transition: background 2s; transition: background 2s;
+  }
+
+  /* ---- Grille faite en flexbox ---- */
+  .page { height: 100%; box-sizing: border-box; padding: 14px;
+    display: -webkit-flex; display: flex;
+    -webkit-flex-direction: column; flex-direction: column; }
+  .rangee { display: -webkit-flex; display: flex; }
+  .rangee-haut { height: 52%; margin-bottom: 14px; }
+  .rangee-bas  { -webkit-flex: 1; flex: 1; }
+
+  /* ---- Tuiles façon iOS ---- */
+  .tuile {
+    position: relative; box-sizing: border-box; overflow: hidden;
+    background: #FFFFFF; border-radius: 24px;
+    box-shadow: 0 2px 10px rgba(46,52,64,0.07);
+    padding: 20px 24px; margin-right: 14px;
+    -webkit-transition: background 2s, color 2s; transition: background 2s, color 2s;
+  }
+  .tuile:last-child { margin-right: 0; }
+  .large  { -webkit-flex: 1.6; flex: 1.6; }
+  .moyen  { -webkit-flex: 1;   flex: 1; }
+  .petit  { -webkit-flex: 0.8; flex: 0.8; }
+
+  .titre {
+    font-size: 19px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #8A94A6; margin: 0 0 10px 0;
+  }
+  .exemple {
+    position: absolute; top: 18px; right: 20px;
+    font-size: 13px; font-weight: 600; color: #B08900;
+    background: #FBF1CF; border-radius: 10px; padding: 3px 9px;
+  }
+  .cache { display: none; }
+
+  /* ---- Horloge ---- */
+  .horloge { text-align: center;
+    display: -webkit-flex; display: flex;
+    -webkit-flex-direction: column; flex-direction: column;
+    -webkit-justify-content: center; justify-content: center; }
+  #heure {
+    font-size: 190px; font-weight: 200; line-height: 1; letter-spacing: -4px;
+  }
+  #secondes { font-size: 56px; font-weight: 300; color: #A3ACBC; letter-spacing: 0; }
+  #date { font-size: 38px; font-weight: 400; color: #5E6779; margin-top: 12px; }
+
+  /* ---- Météo ---- */
+  .meteo-actuelle { display: -webkit-flex; display: flex;
+    -webkit-align-items: center; align-items: center; margin-top: 4px; }
+  #meteo-icone { font-size: 86px; line-height: 1; margin-right: 14px; }
+  #meteo-temp  { font-size: 104px; font-weight: 200; line-height: 1; }
+  #meteo-desc  { font-size: 28px; color: #5E6779; margin-top: 6px; }
+  #meteo-details { font-size: 22px; color: #8A94A6; margin-top: 6px; }
+  .previsions { display: -webkit-flex; display: flex; margin-top: 14px;
+    border-top: 1px solid #EEF0F4; padding-top: 12px; }
+  .prev { -webkit-flex: 1; flex: 1; text-align: center; }
+  .prev-jour  { font-size: 19px; color: #8A94A6; }
+  .prev-icone { font-size: 34px; line-height: 1.3; }
+  .prev-temp  { font-size: 22px; }
+  .prev-min   { color: #A3ACBC; }
+
+  /* ---- Agenda ---- */
+  .evt { display: -webkit-flex; display: flex;
+    -webkit-align-items: baseline; align-items: baseline;
+    padding: 8px 0; border-bottom: 1px solid #EEF0F4; }
+  .evt:last-child { border-bottom: 0; }
+  .evt-heure { font-size: 28px; font-weight: 600; width: 92px;
+    -webkit-flex-shrink: 0; flex-shrink: 0; color: #5B7DB1; }
+  .evt-texte { font-size: 24px; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; -webkit-flex: 1; flex: 1; }
+  .evt-qui { font-size: 18px; color: #A3ACBC; margin-left: 10px; }
+  .evt-passe .evt-heure, .evt-passe .evt-texte { color: #B8BFCC; }
+  .vide { font-size: 26px; color: #A3ACBC; margin-top: 20px; }
+
+  /* ---- Volets ---- */
+  .volet { padding: 7px 0; }
+  .volet-ligne { display: -webkit-flex; display: flex;
+    -webkit-justify-content: space-between; justify-content: space-between;
+    font-size: 25px; }
+  .volet-etat { font-weight: 600; }
+  .etat-ouvert { color: #4F9D7A; }
+  .etat-ferme  { color: #8C7AB8; }
+  .etat-mi     { color: #C08A3E; }
+  .jauge { height: 7px; background: #EEF0F4; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+  .jauge-plein { height: 7px; background: #A9C7E0; border-radius: 4px; }
+
+  /* ---- Soleil & fête ---- */
+  .soleil-ligne { font-size: 34px; font-weight: 300; margin: 6px 0 10px 0; }
+  .soleil-ligne span { font-size: 30px; }
+  #fete { font-size: 26px; color: #5E6779; margin-top: 14px; }
+
+  /* ---- Pied de page discret ---- */
+  #etat {
+    position: absolute; bottom: 4px; right: 18px;
+    font-size: 12px; color: #A3ACBC;
+  }
+  #etat.hors-ligne { color: #C0616B; font-weight: 600; }
+
+  /* ---- Mode nuit doux (22 h – 6 h 30) : moins de lumière dans la pièce ---- */
+  body.nuit { background: #16181D; color: #C9CED8; }
+  body.nuit .tuile { background: #23262E; box-shadow: none; }
+  body.nuit #date, body.nuit #meteo-desc, body.nuit #fete { color: #959DAD; }
+  body.nuit .evt, body.nuit .previsions { border-color: #30343D; }
+  body.nuit .jauge { background: #30343D; }
+  body.nuit .jauge-plein { background: #4E6B85; }
+  body.nuit .evt-heure { color: #7F9CC7; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="rangee rangee-haut">
+    <div class="tuile large horloge">
+      <div id="heure">--:--<span id="secondes"></span></div>
+      <div id="date">&nbsp;</div>
+    </div>
+
+    <div class="tuile moyen">
+      <div class="titre" id="meteo-lieu">Météo</div>
+      <div class="exemple cache" id="ex-meteo">exemple</div>
+      <div class="meteo-actuelle">
+        <div id="meteo-icone"></div>
+        <div id="meteo-temp">--°</div>
+      </div>
+      <div id="meteo-desc">&nbsp;</div>
+      <div id="meteo-details">&nbsp;</div>
+      <div class="previsions" id="meteo-previsions"></div>
+    </div>
+  </div>
+
+  <div class="rangee rangee-bas">
+    <div class="tuile large">
+      <div class="titre">Agenda du jour</div>
+      <div class="exemple cache" id="ex-agenda">exemple</div>
+      <div id="agenda"></div>
+    </div>
+
+    <div class="tuile moyen">
+      <div class="titre">Volets</div>
+      <div class="exemple cache" id="ex-volets">exemple</div>
+      <div id="volets"></div>
+    </div>
+
+    <div class="tuile petit">
+      <div class="titre">Soleil</div>
+      <div class="exemple cache" id="ex-soleil">exemple</div>
+      <div class="soleil-ligne"><span>🌅</span> <b id="lever">--:--</b></div>
+      <div class="soleil-ligne"><span>🌇</span> <b id="coucher">--:--</b></div>
+      <div id="fete">&nbsp;</div>
+    </div>
+  </div>
+
+  <div id="etat">…</div>
+</div>
+
+<script>
+/* ES5 uniquement — compatible Safari 9 (iOS 9.3.6) */
+(function () {
+  var JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  var MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
+              "août", "septembre", "octobre", "novembre", "décembre"];
+
+  var INTERVALLE_DONNEES = 5 * 60 * 1000;      // données : toutes les 5 minutes
+  var INTERVALLE_RECHARGE = 6 * 60 * 60 * 1000; // page entière : toutes les 6 h (libère la mémoire)
+  var debutPage = new Date().getTime();
+
+  function $(id) { return document.getElementById(id); }
+  function deux(n) { return n < 10 ? "0" + n : "" + n; }
+  function texte(el, t) { el.textContent = t; }
+  function vider(el) { while (el.firstChild) { el.removeChild(el.firstChild); } }
+  function creer(tag, classe, contenu) {
+    var el = document.createElement(tag);
+    if (classe) { el.className = classe; }
+    if (contenu !== undefined) { el.textContent = contenu; }
+    return el;
+  }
+  function badge(id, estExemple) { $(id).className = estExemple ? "exemple" : "exemple cache"; }
+
+  /* ---------- Horloge (chaque seconde) ---------- */
+  var heureEl = $("heure"), dateEl = $("date");
+  function majHorloge() {
+    var d = new Date();
+    heureEl.innerHTML = d.getHours() + ":" + deux(d.getMinutes()) +
+      '<span id="secondes">:' + deux(d.getSeconds()) + "</span>";
+    var jour = JOURS[d.getDay()];
+    texte(dateEl, jour.charAt(0).toUpperCase() + jour.slice(1) + " " +
+      (d.getDate() === 1 ? "1er" : d.getDate()) + " " + MOIS[d.getMonth()] + " " + d.getFullYear());
+
+    var minutes = d.getHours() * 60 + d.getMinutes();
+    var nuit = minutes >= 22 * 60 || minutes < 6 * 60 + 30;
+    document.body.className = nuit ? "nuit" : "";
+
+    // se recaler pile sur la seconde suivante
+    setTimeout(majHorloge, 1000 - d.getMilliseconds() + 5);
+  }
+
+  /* ---------- Affichage des données ---------- */
+  function afficherMeteo(m) {
+    if (!m) { return; }
+    badge("ex-meteo", m.exemple);
+    texte($("meteo-lieu"), m.lieu.split("-")[0] === "La Roquette" ? "Météo · La Roquette" : "Météo");
+    texte($("meteo-icone"), m.icone);
+    texte($("meteo-temp"), m.temperature + "°");
+    texte($("meteo-desc"), m.description + "  ·  " + m.max + "° / " + m.min + "°");
+    texte($("meteo-details"), "Pluie " + m.pluie + " %   ·   Vent " + m.vent + " km/h");
+    var box = $("meteo-previsions");
+    vider(box);
+    for (var i = 0; i < m.previsions.length; i++) {
+      var p = m.previsions[i];
+      var c = creer("div", "prev");
+      c.appendChild(creer("div", "prev-jour", p.jour));
+      c.appendChild(creer("div", "prev-icone", p.icone));
+      var t = creer("div", "prev-temp", p.max + "° ");
+      t.appendChild(creer("span", "prev-min", p.min + "°"));
+      c.appendChild(t);
+      box.appendChild(c);
+    }
+  }
+
+  function afficherAgenda(a) {
+    if (!a) { return; }
+    badge("ex-agenda", a.exemple);
+    var box = $("agenda");
+    vider(box);
+    if (!a.evenements || a.evenements.length === 0) {
+      box.appendChild(creer("div", "vide", "Rien de prévu aujourd'hui"));
+      return;
+    }
+    var maintenant = new Date();
+    var hm = deux(maintenant.getHours()) + ":" + deux(maintenant.getMinutes());
+    for (var i = 0; i < a.evenements.length && i < 5; i++) {
+      var e = a.evenements[i];
+      var ligne = creer("div", e.heure && e.heure < hm ? "evt evt-passe" : "evt");
+      ligne.appendChild(creer("div", "evt-heure", e.heure || "Jour"));
+      var t = creer("div", "evt-texte", e.titre);
+      if (e.qui) { t.appendChild(creer("span", "evt-qui", e.qui)); }
+      ligne.appendChild(t);
+      box.appendChild(ligne);
+    }
+  }
+
+  function afficherVolets(v) {
+    if (!v) { return; }
+    badge("ex-volets", v.exemple);
+    var box = $("volets");
+    vider(box);
+    for (var i = 0; i < v.volets.length && i < 5; i++) {
+      var vo = v.volets[i];
+      var etat, classe;
+      if (vo.position >= 95) { etat = "Ouvert"; classe = "etat-ouvert"; }
+      else if (vo.position <= 5) { etat = "Fermé"; classe = "etat-ferme"; }
+      else { etat = vo.position + " %"; classe = "etat-mi"; }
+      var bloc = creer("div", "volet");
+      var ligne = creer("div", "volet-ligne");
+      ligne.appendChild(creer("span", "", vo.nom));
+      ligne.appendChild(creer("span", "volet-etat " + classe, etat));
+      bloc.appendChild(ligne);
+      var jauge = creer("div", "jauge");
+      var plein = creer("div", "jauge-plein");
+      plein.style.width = Math.max(0, Math.min(100, vo.position)) + "%";
+      jauge.appendChild(plein);
+      bloc.appendChild(jauge);
+      box.appendChild(bloc);
+    }
+  }
+
+  function afficherSoleil(s) {
+    if (!s) { return; }
+    badge("ex-soleil", s.exemple);
+    texte($("lever"), s.lever);
+    texte($("coucher"), s.coucher);
+    texte($("fete"), s.fete ? "Fête du jour : " + s.fete : "");
+  }
+
+  /* ---------- Récupération des données (XMLHttpRequest, pas de fetch) ---------- */
+  function requete(url, ok, ko) {
+    var x = new XMLHttpRequest();
+    x.open("GET", url + "?t=" + new Date().getTime(), true);
+    x.timeout = 15000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) { return; }
+      if (x.status === 200) { ok(x.responseText); } else { ko(); }
+    };
+    x.ontimeout = ko;
+    x.send();
+  }
+
+  var etatEl = $("etat");
+  function majDonnees() {
+    requete("/api/donnees", function (txt) {
+      try {
+        var d = JSON.parse(txt);
+        afficherMeteo(d.meteo);
+        afficherAgenda(d.agenda);
+        afficherVolets(d.volets);
+        afficherSoleil(d.soleil);
+        etatEl.className = "";
+        texte(etatEl, "Mis à jour à " + d.maj);
+      } catch (e) {
+        etatEl.className = "hors-ligne";
+        texte(etatEl, "Données illisibles");
+      }
+    }, function () {
+      // On garde l'affichage précédent et on signale discrètement
+      etatEl.className = "hors-ligne";
+      texte(etatEl, "Serveur injoignable — nouvel essai dans 5 min");
+    });
+  }
+
+  /* Rechargement complet de temps en temps, seulement si le serveur répond
+     (sinon on resterait bloqué sur une page d'erreur de Safari). */
+  function rechargerSiPossible() {
+    if (new Date().getTime() - debutPage < INTERVALLE_RECHARGE) { return; }
+    requete("/api/ping", function () { window.location.reload(); }, function () {});
+  }
+
+  majHorloge();
+  majDonnees();
+  setInterval(majDonnees, INTERVALLE_DONNEES);
+  setInterval(rechargerSiPossible, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
