@@ -62,6 +62,20 @@ h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0}
 .nav .t{flex:1;min-width:0;text-align:center}
 .nav .t h2{font-size:24px}
 .nav .t h2::first-letter{text-transform:uppercase}
+.ttl{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:10px;max-width:100%}
+.ttl:active{background:var(--accent-soft)}
+.ttl h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.car{font-size:14px;color:var(--mark);flex:none}
+.mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mcell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px;border-radius:12px;background:var(--bg);border:1px solid transparent}
+.mcell b{font-weight:700;font-size:16px}
+.mcell span{font-family:var(--f-display);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mcell.empty b{color:var(--muted);font-weight:500}
+.mcell.cur{border-color:var(--mark)}
+.mcell.sel{background:var(--accent);color:var(--accent-ink)}
+.mcell.sel span{color:var(--accent-ink);opacity:.8}
+.ynav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ynav h3{font-size:24px}
 .arrow{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:22px;flex:none}
 .linkbtn{color:var(--mark);font-weight:600;font-size:14px;padding:4px 6px}
 /* counters */
@@ -196,7 +210,7 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .codebox{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:90px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:10px;word-break:break-all}
 .msg{font-size:14px;font-weight:600}
 .msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
-@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px)}to{transform:none;opacity:1}}}
 </style>
 
 <div id="app"></div>
@@ -488,7 +502,7 @@ function viewJour(){
   const total=day.reduce((s,c)=>s+(c.p||0),0);
   return `<div class="stack">
   <div class="nav"><button class="arrow" id="dPrev" aria-label="Jour précédent">‹</button>
-    <div class="t"><h2>${esc(fmtDay(selDay))}</h2>${isToday?'<div class="small">Aujourd\'hui</div>':'<button class="linkbtn" id="dToday">Revenir à aujourd\'hui</button>'}</div>
+    <div class="t"><button class="ttl" id="pick" aria-label="Choisir une date"><h2>${esc(fmtDay(selDay))}</h2><span class="car" aria-hidden="true">▾</span></button>${isToday?'<div class="small">Aujourd\'hui</div>':'<button class="linkbtn" id="dToday">Revenir à aujourd\'hui</button>'}</div>
     <button class="arrow" id="dNext" aria-label="Jour suivant">›</button></div>
   <div class="counters">
     <div class="counter main"><div class="v">${day.length}</div><div class="k">${isToday?"Aujourd'hui":"Ce jour"}</div></div>
@@ -505,6 +519,7 @@ function viewJour(){
   </section></div>`;
 }
 function bindJour(){
+  $("#pick").onclick=openDayPicker;
   $("#dPrev").onclick=()=>{selDay=addDays(selDay,-1);render();};
   $("#dNext").onclick=()=>{selDay=addDays(selDay,1);render();};
   if($("#dToday"))$("#dToday").onclick=()=>{selDay=today();render();};
@@ -523,7 +538,7 @@ function weeksOf(list){const g=[];let cur=null;list.forEach(c=>{const ws=weekSta
 function viewMois(){
   const ml=monthList(selMonth),days=new Set(ml.map(c=>c.d)).size,tot=ml.reduce((s,c)=>s+(c.p||0),0);
   return `<div class="stack">
-  <div class="nav"><button class="arrow" id="mPrev" aria-label="Mois précédent">‹</button><div class="t"><h2>${esc(monthLabel(selMonth))}</h2></div><button class="arrow" id="mNext" aria-label="Mois suivant">›</button></div>
+  <div class="nav"><button class="arrow" id="mPrev" aria-label="Mois précédent">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir un mois"><h2>${esc(monthLabel(selMonth))}</h2><span class="car" aria-hidden="true">▾</span></button></div><button class="arrow" id="mNext" aria-label="Mois suivant">›</button></div>
   <div class="card sum"><div><span class="v">${ml.length}</span><span class="k">courses</span></div><div><span class="v">${days}</span><span class="k">jours travaillés</span></div><div><span class="v">${days?(ml.length/days).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par jour</span></div>${tot?`<div><span class="v">${esc(euro(tot))}</span><span class="k">prix notés</span></div>`:""}</div>
   ${ml.length?`<input class="search" id="q" type="search" placeholder="Chercher un client ou une ville" value="${esc(query)}" autocomplete="off">`:""}
   <div id="mList"></div></div>`;
@@ -547,6 +562,7 @@ function renderMonthList(){
   el.innerHTML=h;bindRows(el);
 }
 function bindMois(){
+  $("#pick").onclick=()=>openMonthPicker(selMonth,k=>{selMonth=k;render();});
   $("#mPrev").onclick=()=>{selMonth=addMonths(selMonth,-1);render();};
   $("#mNext").onclick=()=>{selMonth=addMonths(selMonth,1);render();};
   if($("#q"))$("#q").oninput=e=>{query=e.target.value;renderMonthList();};
@@ -579,7 +595,7 @@ function viewBilan(){
   const byRoute=groupCount(ml,c=>norm(c.f)+"|"+norm(c.t),route);
   const byWeek=weeksOf(ml).map(w=>({l:fmtDM(w.ws)+" → "+fmtDM(addDays(w.ws,6)),n:w.items.length}));
   return `<div class="stack">
-  <div class="nav"><button class="arrow" id="bPrev" aria-label="Mois précédent">‹</button><div class="t"><h2>${esc(monthLabel(k))}</h2></div><button class="arrow" id="bNext" aria-label="Mois suivant">›</button></div>
+  <div class="nav"><button class="arrow" id="bPrev" aria-label="Mois précédent">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir un mois"><h2>${esc(monthLabel(k))}</h2><span class="car" aria-hidden="true">▾</span></button></div><button class="arrow" id="bNext" aria-label="Mois suivant">›</button></div>
   <section class="card stack">
     <div class="label">Comparer avec la direction</div>
     <div class="cmp">
@@ -630,6 +646,7 @@ async function copyText(text,box,msg){
   catch(e){box.hidden=false;box.value=text;box.focus();box.select();msg.className="msg";msg.textContent="Sélectionne le texte ci-dessus puis Copier.";}
 }
 function bindBilan(){
+  $("#pick").onclick=()=>openMonthPicker(selMonth,k=>{selMonth=k;render();});
   $("#bPrev").onclick=()=>{selMonth=addMonths(selMonth,-1);render();};
   $("#bNext").onclick=()=>{selMonth=addMonths(selMonth,1);render();};
   const upd=()=>{const m=M(selMonth);const dv=$("#dirIn").value.trim();const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);m.dir=isFinite(n)?n:null;m.fac=parseMoney($("#facIn").value);m.iu=Date.now();touch(selMonth);$("#verdict").innerHTML=verdictHTML(selMonth);};
@@ -673,7 +690,7 @@ function viewSuivi(){
       <span class="mf">${ecart!=null?(ecart===0?'<span class="tag ok">Notes = direction</span>':`<span class="tag ${ecart>0?"warn":"bad"}">${ecart>0?ecart+" non notée"+(ecart>1?"s":""):(-ecart)+" en trop dans mes notes"}</span>`):""}${pv?`<span class="tag">${esc(pct(x.n,pv.n))||"="} courses vs ${esc(MOIS[+prevK.slice(5)-1])}</span>`:""}${pv&&x.fac!=null&&pv.fac!=null?`<span class="tag">${esc(pct(x.fac,pv.fac))||"="} facture</span>`:""}</span>
     </button>`;}).join("");
   return `<div class="stack">
-  <div class="nav"><button class="arrow" id="yPrev" aria-label="Année précédente">‹</button><div class="t"><h2>Suivi ${esc(y)}</h2><div class="small">Factures et nombre de courses, mois par mois</div></div><button class="arrow" id="yNext" aria-label="Année suivante">›</button></div>
+  <div class="nav"><button class="arrow" id="yPrev" aria-label="Année précédente">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir une année"><h2>Suivi ${esc(y)}</h2><span class="car" aria-hidden="true">▾</span></button><div class="small">Factures et nombre de courses, mois par mois</div></div><button class="arrow" id="yNext" aria-label="Année suivante">›</button></div>
   <div class="card sum g2"><div><span class="v">${totN}</span><span class="k">courses</span></div><div><span class="v">${esc(euro(Math.round(totF*100)/100))}</span><span class="k">facturés</span></div><div><span class="v">${totFN?esc(euro(Math.round(totF/totFN*100)/100)):"—"}</span><span class="k">par course</span></div><div><span class="v">${billed.length}</span><span class="k">mois facturés</span></div></div>
   <section class="card stack"><div class="label">${useF?"Factures par mois (€)":"Courses par mois"}</div>
     <div class="year">${st.map((x,i)=>{const v=useF?(x.fac||0):x.n;const mx=useF?maxF:maxN;return `<button class="ycol ${x.k===cur?"cur":""}" data-sm="${x.k}" aria-label="${esc(MOIS[i])}"><span class="yv">${v?(useF?kfmt(v):v):""}</span><span class="yb" style="display:block;height:${(v/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></button>`;}).join("")}</div>
@@ -685,6 +702,7 @@ function viewSuivi(){
   </div>`;
 }
 function bindSuivi(){
+  $("#pick").onclick=()=>openYearPicker(suiviYear,v=>{suiviYear=v;render();});
   $("#yPrev").onclick=()=>{suiviYear=String(+suiviYear-1);render();};
   $("#yNext").onclick=()=>{suiviYear=String(+suiviYear+1);render();};
   document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>openMonthSheet(b.dataset.sm));
@@ -765,6 +783,46 @@ function openMonthSheet(k,pick){
     const f=parseMoney(fv);if(fv!==""&&f==null){$("#mMsg").textContent="Le montant doit être un nombre, par exemple 2309 ou 2309,50.";return;}
     const mm=M(kk);mm.dir=n;mm.fac=f;mm.st=stv;mm.mn=$("#mNote").value.trim().slice(0,300);mm.iu=Date.now();touch(kk);
     closeSheet();suiviYear=kk.slice(0,4);render();toast(monthLabel(kk)+" enregistré.");};
+}
+
+/* ---------- Sélecteur de mois / année ---------- */
+function openMonthPicker(cur,onPick,opts={}){
+  let y=+cur.slice(0,4);const today_k=mkey(today());
+  const draw=()=>{
+    const cells=Array.from({length:12},(_,i)=>{const k=y+"-"+pad(i+1),n=countMonth(k);
+      return `<button class="mcell ${n?"":"empty"} ${k===today_k?"cur":""} ${k===cur?"sel":""}" data-pk="${k}"><b>${esc(capf(MOIS3[i]))}</b><span>${n?plural(n,"course"):"—"}</span></button>`;}).join("");
+    const years=[...new Set(Object.keys(S.m).filter(k=>countMonth(k)).map(k=>+k.slice(0,4)))].sort();
+    openSheet(`<div class="hd"><h2>${opts.title||"Choisir un mois"}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+    <div class="ynav"><button class="arrow" id="pyP" aria-label="Année précédente">‹</button><h3 class="num">${y}</h3><button class="arrow" id="pyN" aria-label="Année suivante">›</button></div>
+    ${years.length>1?`<div class="sugg">${years.map(v=>`<button type="button" class="sg" data-py="${v}">${v}</button>`).join("")}</div>`:""}
+    <div class="mgrid">${cells}</div>
+    <button class="btn ghost" id="pToday">Ce mois-ci</button>`);
+    $("#fx").onclick=closeSheet;
+    $("#pyP").onclick=()=>{y--;draw();};$("#pyN").onclick=()=>{y++;draw();};
+    document.querySelectorAll("[data-py]").forEach(b=>b.onclick=()=>{y=+b.dataset.py;draw();});
+    document.querySelectorAll("[data-pk]").forEach(b=>b.onclick=()=>{closeSheet();onPick(b.dataset.pk);});
+    $("#pToday").onclick=()=>{closeSheet();onPick(today_k);};
+  };draw();
+}
+function openYearPicker(cur,onPick){
+  const ys=[...new Set(Object.keys(S.m).filter(k=>hasInfo(k)).map(k=>k.slice(0,4)).concat([String(new Date().getFullYear())]))].sort().reverse();
+  openSheet(`<div class="hd"><h2>Choisir une année</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <div class="mgrid">${ys.map(v=>{let n=0;for(let i=1;i<=12;i++)n+=countMonth(v+"-"+pad(i));return `<button class="mcell ${v===cur?"sel":""}" data-yy="${v}"><b>${v}</b><span>${n?plural(n,"course"):"—"}</span></button>`;}).join("")}</div>`);
+  $("#fx").onclick=closeSheet;
+  document.querySelectorAll("[data-yy]").forEach(b=>b.onclick=()=>{closeSheet();onPick(b.dataset.yy);});
+}
+function openDayPicker(){
+  openMonthPicker(mkey(selDay),k=>{
+    const first=parseD(k+"-01"),days=new Date(first.getFullYear(),first.getMonth()+1,0).getDate(),off=(first.getDay()+6)%7;
+    const cnt={};monthList(k).forEach(c=>{cnt[c.d]=(cnt[c.d]||0)+1;});
+    let cells="";for(let i=0;i<off;i++)cells+="<span></span>";
+    for(let d=1;d<=days;d++){const ds=k+"-"+pad(d),n=cnt[ds]||0;cells+=`<button class="mcell ${n?"":"empty"} ${ds===today()?"cur":""} ${ds===selDay?"sel":""}" data-pd="${ds}" style="padding:8px 2px"><b>${d}</b><span>${n||"·"}</span></button>`;}
+    openSheet(`<div class="hd"><h2>${esc(monthLabel(k))}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+    <div class="mgrid" style="grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">${["L","M","M","J","V","S","D"].map(x=>`<span class="small" style="text-align:center">${x}</span>`).join("")}${cells}</div>
+    <button class="btn ghost" id="pBack">← Autre mois</button>`);
+    $("#fx").onclick=closeSheet;$("#pBack").onclick=openDayPicker;
+    document.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>{closeSheet();selDay=b.dataset.pd;render();});
+  },{title:"Choisir un jour"});
 }
 
 /* ---------- Réglages ---------- */
