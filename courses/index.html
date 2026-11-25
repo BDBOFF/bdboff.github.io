@@ -123,6 +123,8 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 /* bars */
 .bars{display:flex;flex-direction:column;gap:8px}
 .bar{display:grid;grid-template-columns:minmax(0,38%) 1fr auto;align-items:center;gap:10px;font-size:15px}
+.cbtn{width:100%;text-align:left;padding:4px 0;border-radius:8px}
+.cbtn:active{background:var(--accent-soft)}
 .bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .track{height:12px;border-radius:6px;background:var(--bg);overflow:hidden}
 .bar .fill{height:100%;background:var(--accent);border-radius:6px}
@@ -624,6 +626,7 @@ function viewSuivi(){
   <section class="card stack"><div class="label">${useF?"Factures par mois (€)":"Courses par mois"}</div>
     <div class="year">${st.map((x,i)=>{const v=useF?(x.fac||0):x.n;const mx=useF?maxF:maxN;return `<button class="ycol ${x.k===cur?"cur":""}" data-sm="${x.k}" aria-label="${esc(MOIS[i])}"><span class="yv">${v?(useF?kfmt(v):v):""}</span><span class="yb" style="display:block;height:${(v/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></button>`;}).join("")}</div>
   </section>
+  ${clientSection(y)}
   <button class="btn ghost" id="addMonth">+ Entrer les chiffres d'un mois</button>
   ${rows?`<div class="stack" style="gap:10px">${rows}</div>`:`<div class="card empty">Rien pour ${esc(y)}. Quand ta société te donne le nombre de courses et le montant d'un mois, entre-les ici ou dans Bilan : tu retrouveras chaque mois dans cette liste pour comparer.</div>`}
   <p class="small" style="margin:0">Touche un mois pour modifier ses chiffres. Quand la direction n'a pas donné de chiffre, c'est le nombre de tes notes qui compte.</p>
@@ -633,7 +636,45 @@ function bindSuivi(){
   $("#yPrev").onclick=()=>{suiviYear=String(+suiviYear-1);render();};
   $("#yNext").onclick=()=>{suiviYear=String(+suiviYear+1);render();};
   document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>openMonthSheet(b.dataset.sm));
+  const cl=clientYear(suiviYear);
+  document.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>openClientSheet(suiviYear,cl[+b.dataset.cl]));
+  if($("#clMore"))$("#clMore").onclick=()=>{clientsAll=true;render();};
   $("#addMonth").onclick=()=>{const cur=mkey(today());const k=suiviYear===cur.slice(0,4)?addMonths(cur,new Date().getDate()<20?-1:0):suiviYear+"-12";openMonthSheet(k,true);};
+}
+let clientsAll=false;
+function clientYear(y){const m=new Map();for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{const k=norm(c.c);const e=m.get(k)||{k,l:c.c||"Sans client",n:0,mo:Array(12).fill(0)};e.n++;e.mo[i-1]++;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n);}
+function clientSection(y){
+  const cl=clientYear(y);if(!cl.length)return "";
+  const max=cl[0].n,shown=clientsAll?cl:cl.slice(0,8);
+  return `<section class="card stack"><div class="label" style="display:flex;justify-content:space-between"><span>Courses par client · ${esc(y)}</span><span>${plural(cl.length,"client")}</span></div>
+  <div class="bars">${shown.map((r,i)=>`<button class="bar cbtn" data-cl="${i}"><span class="n">${esc(r.l)}</span><span class="track"><span class="fill" style="display:block;width:${(r.n/max*100).toFixed(1)}%"></span></span><span class="v">${r.n}</span></button>`).join("")}</div>
+  ${cl.length>shown.length?`<button class="linkbtn" id="clMore" style="align-self:flex-start;padding-left:0">Voir les ${cl.length} clients</button>`:""}
+  <p class="small" style="margin:0">Touche un client pour voir ses courses mois par mois.</p></section>`;
+}
+function openClientSheet(y,r){
+  if(!r)return;
+  const list=[];for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{if(norm(c.c)===r.k)list.push(c);});
+  const mx=Math.max(1,...r.mo),cur=mkey(today()),best=r.mo.indexOf(Math.max(...r.mo));
+  const routes=groupCount(list,c=>norm(c.f)+"|"+norm(c.t),route);
+  const active=r.mo.filter(n=>n).length;
+  openSheet(`<div class="hd"><h2>${esc(r.l)}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <div class="sum"><div><span class="v">${r.n}</span><span class="k">courses en ${esc(y)}</span></div><div><span class="v">${active?(r.n/active).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par mois actif</span></div><div><span class="v">${esc(capf(MOIS[best]))}</span><span class="k">meilleur mois (${r.mo[best]})</span></div></div>
+  <div class="year">${r.mo.map((n,i)=>`<span class="ycol ${y+"-"+pad(i+1)===cur?"cur":""}"><span class="yv">${n||""}</span><span class="yb" style="display:block;height:${(n/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></span>`).join("")}</div>
+  <div class="bars">${r.mo.map((n,i)=>n?`<div class="bar"><span class="n">${esc(capf(MOIS[i]))}</span><span class="track"><span class="fill" style="display:block;width:${(n/mx*100).toFixed(1)}%"></span></span><span class="v">${n}</span></div>`:"").join("")}</div>
+  <div class="label">Trajets les plus faits</div>${barsHTML(routes,6)}
+  <form id="rnf" class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:14px" autocomplete="off">
+    <div class="field"><label for="rnIn">Renommer ce client</label><input class="inp" id="rnIn" value="${esc(r.k?r.l:"")}" placeholder="Nom du client"></div>
+    <p class="small" style="margin:0">Le changement touche toutes ses courses, tous mois confondus. Si tu mets le nom d'un autre client (par exemple « Jo Malone » pour « Jonmalone »), les deux sont regroupés.</p>
+    <div class="msg bad" id="rnMsg"></div>
+    <button class="btn ghost" type="submit">Renommer</button>
+  </form>`);
+  $("#fx").onclick=closeSheet;
+  $("#rnf").onsubmit=e=>{e.preventDefault();const v=$("#rnIn").value.trim();
+    if(!v){$("#rnMsg").textContent="Écris un nom.";return;}
+    const nn=canon(v,["c"]);if(nn===r.l){closeSheet();return;}
+    const now=Date.now();let n=0;
+    for(const k in S.m){let ch=false;for(const id in S.m[k].c){const c=S.m[k].c[id];if(norm(c.c)===r.k){c.c=nn;c.u=now;n++;ch=true;}}if(ch)touch(k);}
+    closeSheet();render();toast(`${plural(n,"course")} : ${r.l} → ${nn}`);};
 }
 function openMonthSheet(k,pick){
   const m=S.m[k]||blankMonth(),mine=countMonth(k);
