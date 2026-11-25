@@ -107,6 +107,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0}
 .sum div{display:flex;flex-direction:column}
 .sum .v{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;font-variant-numeric:tabular-nums}
 .sum .k{font-size:13px;color:var(--muted)}
+.sum.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 /* compare */
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -128,14 +129,35 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .bar .v{font-family:var(--f-display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;min-width:34px}
 .year{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:150px}
 .ycol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:0;padding:0}
-.ycol .yv{font-family:var(--f-display);font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.ycol .yv{white-space:nowrap;font-family:var(--f-display);font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 .ycol .yb{width:100%;max-width:26px;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
 .ycol.cur .yb{background:var(--mark)}
 .ycol .ym{font-size:11px;color:var(--muted);text-transform:uppercase}
+/* suivi */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);border-radius:12px;padding:4px}
+.seg button{min-height:40px;border-radius:9px;font-weight:600;font-size:15px;color:var(--muted)}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(10,30,50,.15)}
+.seg button.s2[aria-checked="true"]{background:var(--ok-soft);color:var(--ok)}
+.seg button.s1[aria-checked="true"]{background:var(--accent-soft);color:var(--accent)}
+.mrow{display:flex;flex-direction:column;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.mrow:active{background:var(--accent-soft)}
+.mh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mt{font-family:var(--f-display);font-weight:700;font-size:21px}
+.st{font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--mark-soft)}
+.st.s1{background:var(--accent-soft);color:var(--accent)}
+.st.s2{background:var(--ok-soft);color:var(--ok)}
+.mg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.mg span{display:flex;flex-direction:column;min-width:0}
+.mg b{font-size:20px;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mg i{font-style:normal;font-size:12px;color:var(--muted)}
+.mf{display:flex;flex-wrap:wrap;gap:6px}
+.mf:empty{display:none}
+.tag{font-size:13px;font-weight:600;padding:3px 9px;border-radius:8px;background:var(--bg);color:var(--muted)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--mark-soft);color:var(--ink)}.tag.bad{background:var(--bad-soft);color:var(--bad)}
 /* tab bar */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
 .tabs .in{display:flex;width:100%;max-width:560px}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
+.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11.5px;font-weight:600;color:var(--muted);border-radius:10px}
 .tab svg{width:24px;height:24px}
 .tab[aria-current="page"]{color:var(--accent)}
 .fab{position:fixed;z-index:21;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(78px + env(safe-area-inset-bottom,0px));height:56px;padding:0 20px 0 16px;border-radius:28px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(10,40,70,.28)}
@@ -148,7 +170,10 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .x{width:40px;height:40px;border-radius:50%;background:var(--bg);font-size:20px;display:grid;place-items:center}
 .sugg{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .sugg::-webkit-scrollbar{display:none}
-.sg{flex:none;padding:7px 12px;border-radius:99px;background:var(--accent-soft);font-weight:600;font-size:15px}
+.sg{flex:none;padding:7px 12px;border-radius:99px;background:var(--accent-soft);font-weight:600;font-size:15px;display:inline-flex;align-items:baseline;gap:6px}
+.sg small{font-family:var(--f-display);font-weight:500;font-size:13px;color:var(--muted)}
+.sgl{font-size:12px;color:var(--muted);margin:-6px 0 -8px}
+.sgl span{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .trip{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end}
 .swap{width:44px;height:48px;border-radius:12px;background:var(--bg);font-size:20px}
 .confirm{display:flex;flex-direction:column;gap:10px;background:var(--bad-soft);border-radius:12px;padding:12px}
@@ -200,16 +225,16 @@ function stable(o){if(Array.isArray(o))return "["+o.map(stable).join(",")+"]";if
 
 /* ============ Données ============ */
 const LS="carnet-courses.v1";
-const blankMonth=()=>({c:{},x:{},dir:null,fac:null,iu:0,u:0});
+const blankMonth=()=>({c:{},x:{},dir:null,fac:null,st:0,iu:0,u:0});
 function okCourse(c,k){return c&&typeof c==="object"&&typeof c.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(c.d)&&mkey(c.d)===k;}
 function cleanCourse(c){const s=v=>String(v??"").slice(0,80);return{d:c.d,f:s(c.f),t:s(c.t),c:s(c.c),p:numOrNull(c.p),n:String(c.n??"").slice(0,200),k:+c.k||0,u:+c.u||0};}
 function mergeMonth(a,b,k){
   a=a&&typeof a==="object"?a:{};b=b&&typeof b==="object"?b:{};
-  const r={c:{},x:{},dir:null,fac:null,iu:0,u:Math.max(+a.u||0,+b.u||0)};
+  const r={c:{},x:{},dir:null,fac:null,st:0,iu:0,u:Math.max(+a.u||0,+b.u||0)};
   for(const s of [a.x,b.x])if(s&&typeof s==="object")for(const id in s){const v=+s[id]||0;if(v>(r.x[id]||0))r.x[id]=v;}
   for(const s of [a.c,b.c])if(s&&typeof s==="object")for(const id in s){const c=s[id];if(!okCourse(c,k))continue;const cur=r.c[id];if(!cur||(+c.u||0)>cur.u)r.c[id]=cleanCourse(c);}
   for(const id in r.c)if(r.x[id]&&r.x[id]>=r.c[id].u)delete r.c[id];
-  const info=(+b.iu||0)>(+a.iu||0)?b:a;r.dir=numOrNull(info.dir);r.fac=numOrNull(info.fac);r.iu=+info.iu||0;
+  const info=(+b.iu||0)>(+a.iu||0)?b:a;r.dir=numOrNull(info.dir);r.fac=numOrNull(info.fac);r.st=[0,1,2].includes(+info.st)?+info.st:0;r.iu=+info.iu||0;
   return r;
 }
 function load(){try{const r=JSON.parse(localStorage.getItem(LS)||"null");if(r&&r.m){const m={};for(const k in r.m)if(/^\d{4}-\d{2}$/.test(k))m[k]=mergeMonth(blankMonth(),r.m[k],k);return{v:1,m};}}catch(e){}return{v:1,m:{}};}
@@ -296,9 +321,37 @@ async function importCode(txt){
   return [true,"Données chargées : "+(add>0?plural(add,"course")+" ajoutée"+(add>1?"s":""):"rien de nouveau")+". Total : "+plural(countAll(),"course")+"."];
 }
 
+/* ============ Communes 06 + 83 (+ Monaco), triées par population ============ */
+const CP_RAW="Nice|06000,06100,06200,06300;Toulon|83000,83100,83200;Antibes|06160,06600;Monaco|98000;Cannes|06150,06400;La Seyne-sur-Mer|83500;Fréjus|83370,83600;Hyères|83400;Cagnes-sur-Mer|06800;Grasse|06130,06520;Le Cannet|06110;Draguignan|83300;Saint-Raphaël|83530,83700;Six-Fours-les-Plages|83140;Saint-Laurent-du-Var|06700;Menton|06500;Vallauris|06220;La Garde|83130;La Valette-du-Var|83160;Mandelieu-la-Napoule|06210;Vence|06140;Mougins|06250;La Crau|83260;Sanary-sur-Mer|83110;Saint-Maximin-la-Sainte-Baume|83470;Brignoles|83170;Villeneuve-Loubet|06270;Roquebrune-sur-Argens|83380,83520;Ollioules|83190;Sainte-Maxime|83120;Carros|06510;Cuers|83390;Vidauban|83550;Solliès-Pont|83210;Cogolin|83310;Roquebrune-Cap-Martin|06190;Valbonne|06560;Beausoleil|06240;Saint-Cyr-sur-Mer|83270;Le Luc|83340;Mouans-Sartoux|06370;Le Pradet|83220;La Trinité|06340;La Londe-les-Maures|83250;Biot|06410;Le Beausset|83330;Le Muy|83490;La Farlède|83210;Lorgues|83510;Carqueiranne|83320;Puget-sur-Argens|83480;Bormes-les-Mimosas|83230;Peymeinade|06530;Bandol|83150;Pégomas|06580;La Colle-sur-Loup|06480;Cavalaire-sur-Mer|83240;Les Arcs|83460;Contes|06390;Roquefort-les-Pins|06330;La Gaude|06610;Montauroux|83440;Trans-en-Provence|83720;Le Lavandou|83980;Solliès-Toucas|83210;Fayence|83440;Pierrefeu-du-Var|83390;Le Castellet|83330;Saint-Mandrier-sur-Mer|83430;Saint-André-de-la-Roche|06730;Saint-Zacharie|83640;Garéoult|83136;La Cadière-d'Azur|83740;La Roquette-sur-Siagne|06550;Rocbaron|83136;Pourrières|83910;Drap|06340;Levens|06670;Nans-les-Pins|83860;Tourves|83170;Le Cannet-des-Maures|83340;Villefranche-sur-Mer|06230;Pignans|83790;Flayosc|83780;Tourrette-Levens|06690;Puget-Ville|83390;Grimaud|83310;Gonfaron|83590;Cap-d'Ail|06320;Vinon-sur-Verdon|83560;Saint-Jeannet|06640;Carnoules|83660;Gattières|06510;Le Val|83143;Rians|83560;Le Rouret|06650;Tourrettes-sur-Loup|06140;Le Revest-les-Eaux|83200;Saint-Cézaire-sur-Siagne|06530;Salernes|83690;Beaulieu-sur-Mer|06310;La Croix-Valmer|83420;Callian|83440;Châteauneuf-Grasse|06740;Sospel|06380;Flassans-sur-Issole|83340;Saint-Vallier-de-Thiey|06460;Saint-Tropez|83990;Carcès|83570;Saint-Martin-du-Var|06670;Colomars|06670;Auribeau-sur-Siagne|06810;Forcalqueiret|83136;Le Tignet|06530;Saint-Paul-de-Vence|06570;Bagnols-en-Forêt|83600;Signes|83870;Besse-sur-Issole|83890;Le Plan-de-la-Tour|83120;La Motte|83920;La Turbie|06320;Barjols|83670;Néoules|83136;Le Bar-sur-Loup|06620;Tourrettes|83440;Seillans|83440;Seillons-Source-d'Argens|83470;La Roquebrussanne|83136;Les Adrets-de-l'Estérel|83600;Figanières|83830;Gassin|83580;Bras|83149;Le Thoronet|83340;L'Escarène|06440;Opio|06650;Plan-d'Aups-Sainte-Baume|83640;Solliès-Ville|83210;Saint-Julien|83560;Évenos|83330;Régusse|83630;Breil-sur-Roya|06540;Belgentier|83210;Aspremont|06790;Méounes-lès-Montrieux|83136;Cotignac|83570;Aups|83630;Falicon|06950;Sainte-Anastasie-sur-Issole|83136;Èze|06360;Callas|83830;Peille|06440;Ginasservis|83560;Cabasse|83340;Taradeau|83460;Camps-la-Source|83170;Ramatuelle|83350;Collobrières|83610;La Garde-Freinet|83680;Roquebillière|06450;Puget-Théniers|06260;Tende|06430;Tanneron|83440;Saint-Paul-en-Forêt|83440;Montferrat|83131;Rougiers|83170;Blausasc|06440;La Verdière|83560;Castagniers|06670;La Celle|83170;Gilette|06830;Gorbio|06500;Pourcieux|83470;La Môle|83310;Saint-Jean-Cap-Ferrat|06230;Villecroze|83690;Tavernes|83670;Théoule-sur-Mer|06590;Brue-Auriac|83119;Montfort-sur-Argens|83570;Cabris|06530;Le Broc|06510;Bargemon|83830;Peillon|06440;Saint-Blaise|06670;Sainte-Agnès|06500;Saint-Martin-Vésubie|06450;Berre-les-Alpes|06390;Saint-Étienne-de-Tinée|06660;Cantaron|06340;Spéracèdes|06530;Lucéram|06440;Lantosque|06450;Varages|83670;Entrecasteaux|83570;Péone|06470;Châteauneuf-Villevieille|06390;Castellar|06500;Bendejun|06390;Vins-sur-Caramy|83170;La Roquette-sur-Var|06670;Ampus|83111;Mons|83440;Mazaugues|83136;Correns|83570;Saint-Antonin-du-Var|83510;Valdeblore|06420;Coaraze|06390;Utelle|06450;Sillans-la-Cascade|83690;Pontevès|83670;Villars-sur-Var|06710;La Brigue|06430;Touët-sur-Var|06710;Bonson|06830;Claviers|83830;Clans|06420;Andon|06750;La Bollène-Vésubie|06450;Isola|06420;Rayol-Canadel-sur-Mer|83820;Ollières|83470;Gréolières|06620;Les Mayons|83340;Escragnolles|06460;Belvédère|06450;Montmeyan|83670;Guillaumes|06470;Tourtour|83690;Coursegoules|06140;Bouyon|06510;Roquestéron|06910;Séranon|06750;La Tour|06420;Valderoure|06750;Fox-Amphoux|83670;Beuil|06470;Châteaudouble|83300;Caille|06750;Saorge|06540;Castillon|06500;Cipières|06620;Esparron-de-Pallières|83560;Gourdon|06620;Toudon|06830;Comps-sur-Artuby|83840;Pierrefeu|06910;Caussols|06460;Malaussène|06710;Artignosc-sur-Verdon|83630;Bauduen|83630;Fontan|06540;Moissac-Bellevue|83630;Touët-de-l'Escarène|06440;Saint-Sauveur-sur-Tinée|06420;Saint-Martin-de-Pallières|83560;Artigues|83560;Aiguines|83630;Moulinet|06380;La Roque-Esclapon|83840;Bézaudun-les-Alpes|06510;La Penne|06260;Revest-les-Roches|06830;Les Salles-sur-Verdon|83630;Baudinard-sur-Verdon|83630;Trigance|83840;La Bastide|83840;La Martre|83840;Bargème|83840;Sigale|06910;Venanson|06450;Saint-Auban|06850;Ascros|06260;Briançonnet|06850;Rigaud|06260;Rimplas|06420;Duranus|06670;Daluis|06470;Tourette-du-Château|06830;Tournefort|06420;Châteauvert|83670;Massoins|06710;Saint-Martin-d'Entraunes|06470;Ilonse|06420;Cuébris|06910;Entraunes|06470;Puget-Rostang|06260;Roure|06420;Roubion|06420;Courmes|06620;Marie|06420;Bairols|06420;Aiglun|06910;Conségudes|06510;Pierlas|06260;Saint-Dalmas-le-Selvage|06660;Le Mas|06910;La Croix-sur-Roudoule|06260;Les Ferres|06510;Thiéry|06710;Saint-Antonin|06260;Collongues|06910;Villeneuve-d'Entraunes|06470;Châteauvieux|83840;La Roque-en-Provence|06910;Sauze|06470;Gars|06850;Châteauneuf-d'Entraunes|06470;Saint-Léger|06260;Auvare|06260;Riboux|13780;Lieuche|06260;Sallagriffon|06910;Amirat|06910;Le Bourguet|83840;Les Mujouls|06910;Brenon|83840;Vérignon|83630;Juan-les-Pins|06160;Golfe-Juan|06220;Sophia Antipolis|06560;La Bocca|06150;Aéroport Nice Côte d'Azur|06200";
+const norm2=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[-'’.]/g," ").replace(/\s+/g," ").trim();
+const COMMUNES=CP_RAW.split(";").map(x=>{const [n,c]=x.split("|");return{n,cp:c.split(","),k:norm(n),k2:norm2(n)};});
+const COMMUNE_BY=new Map(COMMUNES.map(c=>[c.k,c]));
+function placeSuggest(raw){
+  const PM=placeMap(),q=norm(raw),q2=norm2(raw);
+  const hist=freq(["f","t"]);["Cannes","Nice","Monaco"].forEach(p=>{if(!hist.some(x=>norm(x)===norm(p)))hist.push(p);});
+  const cpOf=v=>{const c=COMMUNE_BY.get(norm(v))||COMMUNES.find(c=>PM.get(c.k)===v);return c?c.cp[0]:"";};
+  const out=[],seen=new Set();
+  const add=(v,cp)=>{const k=norm(v);if(seen.has(k)||k===q)return;seen.add(k);out.push({v,cp:cp??cpOf(v)});};
+  if(!q){hist.slice(0,10).forEach(v=>add(v));return out;}
+  if(/^\d{2,5}$/.test(q)){COMMUNES.forEach(c=>{const hit=c.cp.find(x=>x.startsWith(q));if(hit)add(PM.get(c.k)||c.n,hit);});return out.slice(0,14);}
+  const starts=c=>c.k.startsWith(q)||c.k2.startsWith(q2);
+  hist.forEach(v=>{if(norm(v).startsWith(q)||norm2(v).startsWith(q2))add(v);});
+  COMMUNES.forEach(c=>{if(starts(c))add(PM.get(c.k)||c.n,c.cp[0]);});
+  hist.forEach(v=>{if(norm(v).includes(q))add(v);});
+  COMMUNES.forEach(c=>{if(c.k.includes(" "+q)||c.k2.includes(" "+q2))add(PM.get(c.k)||c.n,c.cp[0]);});
+  return out.slice(0,14);
+}
+function canonPlace(v){
+  const t=String(v||"").trim();
+  if(/^\d{5}$/.test(t)){const c=COMMUNES.find(c=>c.cp.includes(t));if(c)return placeMap().get(c.k)||c.n;}
+  const n=norm(t);if(!n)return "";
+  for(const c of allList())for(const f of ["f","t"])if(norm(c[f])===n)return c[f];
+  const pm=placeMap().get(n);return pm||titleWords(t);
+}
+
 /* ============ Import depuis Notes ============ */
 const PLACES=[["Cannes"],["Nice"],["Monaco"],["Mougins"],["Antibes"],["Juan-les-Pins","juan"],["Golfe-Juan"],["Vallauris"],["Le Cannet","cannet"],["Mandelieu","mandelieu la napoule"],["La Napoule"],["Théoule","theoule sur mer"],["Grasse"],["Valbonne"],["Sophia","sophia antipolis"],["Biot"],["Villeneuve-Loubet"],["Cagnes","cagnes sur mer"],["Saint-Laurent","st laurent du var"],["Villefranche","villefranche sur mer"],["Beaulieu","beaulieu sur mer"],["Cap-Ferrat","st jean cap ferrat","st jean"],["Èze","eze village","eze sur mer"],["Cap-d'Ail"],["Beausoleil"],["Roquebrune","roquebrune cap martin"],["Menton"],["Saint-Raphaël"],["Fréjus"],["Sainte-Maxime"],["Saint-Tropez"],["Ramatuelle"],["Saint-Paul-de-Vence","st paul"],["Vence"],["Mouans-Sartoux"],["Aéroport","aeroport nice","aeroport de nice"],["Gare"],["Port"]];
-function placeMap(){const m=new Map();PLACES.forEach(([c,...al])=>[c,...al].forEach(a=>m.set(norm(a),c)));freq(["f","t"]).forEach(v=>{if(!m.has(norm(v)))m.set(norm(v),v);});return m;}
+function placeMap(){const m=new Map();COMMUNES.forEach(c=>m.set(c.k,c.n));PLACES.forEach(([c,...al])=>[c,...al].forEach(a=>m.set(norm(a),c)));freq(["f","t"]).forEach(v=>{if(!m.has(norm(v)))m.set(norm(v),v);});return m;}
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
 function parseNotes(text,year){
   const PM=placeMap(),clients=new Map();freq(["c"]).forEach(v=>clients.set(norm(v),v));
@@ -330,17 +383,18 @@ function parseNotes(text,year){
 
 /* ============ État de l'interface ============ */
 let tab="jour",selDay=today(),selMonth=mkey(today()),query="";
-try{const p=JSON.parse(localStorage.getItem(LS+".ui")||"{}");if(["jour","mois","bilan","plus"].includes(p.tab))tab=p.tab;}catch(e){}
+try{const p=JSON.parse(localStorage.getItem(LS+".ui")||"{}");if(["jour","mois","bilan","suivi","plus"].includes(p.tab))tab=p.tab;}catch(e){}
 const saveUI=()=>{try{localStorage.setItem(LS+".ui",JSON.stringify({tab}));}catch(e){}};
 
 const ICON={
   jour:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>',
   mois:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>',
+  suivi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
   bilan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
 };
-const TABS=[["jour","Jour"],["mois","Mois"],["bilan","Bilan"],["plus","Réglages"]];
+const TABS=[["jour","Jour"],["mois","Mois"],["bilan","Bilan"],["suivi","Suivi"],["plus","Réglages"]];
 
 function renderTabs(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="tab" data-tab="${k}" ${tab===k?'aria-current="page"':""}>${ICON[k]}<span>${l}</span></button>`).join("");
@@ -363,9 +417,9 @@ function render(){
   renderTabs();
   const app=$("#app");
   let h=`<header class="top" id="top">${topHTML()}</header>`;
-  if(tab==="jour")h+=viewJour();else if(tab==="mois")h+=viewMois();else if(tab==="bilan")h+=viewBilan();else h+=viewPlus();
+  if(tab==="jour")h+=viewJour();else if(tab==="mois")h+=viewMois();else if(tab==="bilan")h+=viewBilan();else if(tab==="suivi")h+=viewSuivi();else h+=viewPlus();
   app.innerHTML=h;
-  if(tab==="jour")bindJour();else if(tab==="mois")bindMois();else if(tab==="bilan")bindBilan();else bindPlus();
+  if(tab==="jour")bindJour();else if(tab==="mois")bindMois();else if(tab==="bilan")bindBilan();else if(tab==="suivi")bindSuivi();else bindPlus();
 }
 
 /* ---------- Jour ---------- */
@@ -450,6 +504,7 @@ function verdictHTML(k){
   const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,fac=m.fac;
   let v;
   if(dir==null)v=`<div class="verdict neutral">Entre le nombre de courses donné par la direction pour comparer avec tes notes.</div>`;
+  else if(!mine)v=`<div class="verdict neutral">Pas de courses notées ce mois-ci : seuls les chiffres de la direction sont enregistrés (${plural(dir,"course")}).</div>`;
   else{const d=dir-mine;
     if(d===0)v=`<div class="verdict ok">Parfait : ${plural(mine,"course")} des deux côtés.</div>`;
     else if(d>0)v=`<div class="verdict warn">La direction compte <b>${plural(d,"course")} de plus</b> que tes notes (${dir} contre ${mine}). Tu as sans doute oublié de ${d>1?"les":"la"} noter.</div>`;
@@ -475,7 +530,9 @@ function viewBilan(){
       <div class="field"><label for="dirIn">Selon la direction</label><input class="inp big" id="dirIn" inputmode="numeric" placeholder="—" value="${m.dir??""}"></div>
     </div>
     <div class="field"><label for="facIn">Montant de la facture (€)</label><input class="inp" id="facIn" inputmode="decimal" placeholder="ex. 2 450" value="${m.fac!=null?String(m.fac).replace(".",","):""}"></div>
+    <div class="field"><label>Facture</label>${statusSeg(m.st,"bSt")}</div>
     <div class="stack" style="gap:8px" id="verdict">${verdictHTML(k)}</div>
+    <button class="linkbtn" id="toSuivi" style="align-self:flex-start;padding-left:0">Voir le suivi de tous les mois →</button>
   </section>
   ${ml.length?`<section class="card stack"><div class="label">Par client</div>${barsHTML(byClient,12)}</section>
   <section class="card stack"><div class="label">Par trajet</div>${barsHTML(byRoute,10)}</section>
@@ -493,7 +550,7 @@ function recapText(k){
   const ml=monthList(k),m=S.m[k]||blankMonth();
   let t=`${monthLabel(k)} : ${plural(ml.length,"course")}\n`;
   if(m.dir!=null)t+=`Selon la direction : ${m.dir}\n`;
-  if(m.fac!=null)t+=`Facture : ${euro(m.fac)}\n`;
+  if(m.fac!=null)t+=`Facture : ${euro(m.fac)}${m.st?" ("+STATUS[m.st].toLowerCase()+")":""}\n`;
   t+="\nPar semaine\n";weeksOf(ml).forEach(w=>{t+=`- du ${fmtDM(w.ws)} au ${fmtDM(addDays(w.ws,6))} : ${w.items.length}\n`;});
   t+="\nPar client\n";groupCount(ml,c=>norm(c.c),c=>c.c||"Sans client").forEach(r=>{t+=`- ${r.l} : ${r.n}\n`;});
   t+="\nDétail\n";let d=null;
@@ -519,9 +576,89 @@ function bindBilan(){
   $("#bNext").onclick=()=>{selMonth=addMonths(selMonth,1);render();};
   const upd=()=>{const m=M(selMonth);const dv=$("#dirIn").value.trim();const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);m.dir=isFinite(n)?n:null;m.fac=parseMoney($("#facIn").value);m.iu=Date.now();touch(selMonth);$("#verdict").innerHTML=verdictHTML(selMonth);};
   $("#dirIn").oninput=upd;$("#facIn").oninput=upd;
+  bindSeg("bSt",v=>{const m=M(selMonth);m.st=v;m.iu=Date.now();touch(selMonth);});
+  $("#toSuivi").onclick=()=>{tab="suivi";suiviYear=selMonth.slice(0,4);saveUI();render();window.scrollTo(0,0);};
   document.querySelectorAll("[data-ym]").forEach(b=>b.onclick=()=>{selMonth=b.dataset.ym;render();});
   $("#copyRecap").onclick=()=>copyText(recapText(selMonth),$("#recapBox"),$("#recapMsg"));
   $("#csvMonth").onclick=()=>saveFile("courses-"+selMonth+".csv",csvText(monthList(selMonth)),$("#recapMsg"));
+}
+
+/* ---------- Suivi des factures ---------- */
+const STATUS=["À faire","Envoyée","Payée"];
+let suiviYear=String(new Date().getFullYear());
+function statusSeg(cur,id){return `<div class="seg" id="${id}" role="radiogroup">${STATUS.map((l,i)=>`<button type="button" role="radio" aria-checked="${(+cur||0)===i}" data-v="${i}" class="s${i}">${l}</button>`).join("")}</div>`;}
+function bindSeg(id,fn){const el=$("#"+id);if(!el)return;el.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{el.querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",x===b));fn(+b.dataset.v);});}
+function monthStats(k){const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,n=dir??mine,fac=m.fac;return{k,mine,dir,n,fac,st:m.st||0,per:fac!=null&&n?fac/n:null};}
+const hasInfo=k=>!!(countMonth(k)||(S.m[k]&&(S.m[k].dir!=null||S.m[k].fac!=null)));
+const kfmt=n=>n>=1000?(n/1000).toLocaleString("fr-FR",{maximumFractionDigits:1})+"k":String(Math.round(n));
+function pct(a,b){if(!b)return "";const p=Math.round((a-b)/b*100);return (p>0?"+":"")+p+" %";}
+function viewSuivi(){
+  const y=suiviYear,cur=mkey(today());
+  const ks=Array.from({length:12},(_,i)=>y+"-"+pad(i+1));
+  const st=ks.map(monthStats);
+  const withData=st.filter(x=>hasInfo(x.k));
+  const totN=withData.reduce((s,x)=>s+x.n,0),billed=withData.filter(x=>x.fac!=null),totF=billed.reduce((s,x)=>s+x.fac,0),totFN=billed.reduce((s,x)=>s+x.n,0);
+  const maxF=Math.max(1,...st.map(x=>x.fac||0)),maxN=Math.max(1,...st.map(x=>x.n));
+  const useF=billed.length>0;
+  const rows=withData.slice().reverse().map(x=>{
+    const prevK=addMonths(x.k,-1),pv=hasInfo(prevK)?monthStats(prevK):null;
+    const ecart=x.dir!=null&&x.mine?x.dir-x.mine:null;
+    return `<button class="mrow" data-sm="${x.k}">
+      <span class="mh"><span class="mt">${esc(monthLabel(x.k))}</span>${x.fac!=null||x.dir!=null?`<span class="st s${x.st}">${STATUS[x.st]}</span>`:""}</span>
+      <span class="mg">
+        <span><b class="num">${x.mine||"—"}</b><i>mes notes</i></span>
+        <span><b class="num">${x.dir??"—"}</b><i>direction</i></span>
+        <span><b class="num">${x.fac!=null?esc(euro(x.fac)):"—"}</b><i>facture</i></span>
+        <span><b class="num">${x.per!=null?esc(euro(Math.round(x.per*100)/100)):"—"}</b><i>par course</i></span>
+      </span>
+      <span class="mf">${ecart!=null?(ecart===0?'<span class="tag ok">Notes = direction</span>':`<span class="tag ${ecart>0?"warn":"bad"}">${ecart>0?ecart+" non notée"+(ecart>1?"s":""):(-ecart)+" en trop dans mes notes"}</span>`):""}${pv?`<span class="tag">${esc(pct(x.n,pv.n))||"="} courses vs ${esc(MOIS[+prevK.slice(5)-1])}</span>`:""}${pv&&x.fac!=null&&pv.fac!=null?`<span class="tag">${esc(pct(x.fac,pv.fac))||"="} facture</span>`:""}</span>
+    </button>`;}).join("");
+  return `<div class="stack">
+  <div class="nav"><button class="arrow" id="yPrev" aria-label="Année précédente">‹</button><div class="t"><h2>Suivi ${esc(y)}</h2><div class="small">Factures et nombre de courses, mois par mois</div></div><button class="arrow" id="yNext" aria-label="Année suivante">›</button></div>
+  <div class="card sum g2"><div><span class="v">${totN}</span><span class="k">courses</span></div><div><span class="v">${esc(euro(Math.round(totF*100)/100))}</span><span class="k">facturés</span></div><div><span class="v">${totFN?esc(euro(Math.round(totF/totFN*100)/100)):"—"}</span><span class="k">par course</span></div><div><span class="v">${billed.length}</span><span class="k">mois facturés</span></div></div>
+  <section class="card stack"><div class="label">${useF?"Factures par mois (€)":"Courses par mois"}</div>
+    <div class="year">${st.map((x,i)=>{const v=useF?(x.fac||0):x.n;const mx=useF?maxF:maxN;return `<button class="ycol ${x.k===cur?"cur":""}" data-sm="${x.k}" aria-label="${esc(MOIS[i])}"><span class="yv">${v?(useF?kfmt(v):v):""}</span><span class="yb" style="display:block;height:${(v/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></button>`;}).join("")}</div>
+  </section>
+  <button class="btn ghost" id="addMonth">+ Entrer les chiffres d'un mois</button>
+  ${rows?`<div class="stack" style="gap:10px">${rows}</div>`:`<div class="card empty">Rien pour ${esc(y)}. Quand ta société te donne le nombre de courses et le montant d'un mois, entre-les ici ou dans Bilan : tu retrouveras chaque mois dans cette liste pour comparer.</div>`}
+  <p class="small" style="margin:0">Touche un mois pour modifier ses chiffres. Quand la direction n'a pas donné de chiffre, c'est le nombre de tes notes qui compte.</p>
+  </div>`;
+}
+function bindSuivi(){
+  $("#yPrev").onclick=()=>{suiviYear=String(+suiviYear-1);render();};
+  $("#yNext").onclick=()=>{suiviYear=String(+suiviYear+1);render();};
+  document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>openMonthSheet(b.dataset.sm));
+  $("#addMonth").onclick=()=>{const cur=mkey(today());const k=suiviYear===cur.slice(0,4)?addMonths(cur,new Date().getDate()<20?-1:0):suiviYear+"-12";openMonthSheet(k,true);};
+}
+function openMonthSheet(k,pick){
+  const m=S.m[k]||blankMonth(),mine=countMonth(k);
+  openSheet(`<div class="hd"><h2>${pick?"Chiffres d'un mois":esc(monthLabel(k))}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <form id="mf" class="stack" autocomplete="off">
+    ${pick?`<div class="field"><label for="mk">Mois</label><input class="inp" id="mk" type="month" value="${k}" required></div>`:""}
+    <div class="small" id="mMine">Mes notes : <b style="color:var(--ink)">${plural(mine,"course")}</b></div>
+    <div class="cmp">
+      <div class="field"><label for="mDir">Courses (direction)</label><input class="inp big" id="mDir" inputmode="numeric" value="${m.dir??""}" placeholder="—"></div>
+      <div class="field"><label for="mFac">Montant (€)</label><input class="inp big" id="mFac" inputmode="decimal" value="${m.fac!=null?String(m.fac).replace(".",","):""}" placeholder="—"></div>
+    </div>
+    <div class="field"><label>Facture</label>${statusSeg(m.st,"mSt")}</div>
+    <div class="msg bad" id="mMsg"></div>
+    <button class="btn block" type="submit">Enregistrer</button>
+    <button type="button" class="btn ghost block" id="mBilan">Voir le bilan détaillé</button>
+  </form>`);
+  let stv=m.st||0;
+  bindSeg("mSt",v=>{stv=v;});
+  const key=()=>pick?$("#mk").value:k;
+  if(pick)$("#mk").onchange=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;const mm=S.m[kk]||blankMonth();$("#mMine").innerHTML=`Mes notes : <b style="color:var(--ink)">${plural(countMonth(kk),"course")}</b>`;$("#mDir").value=mm.dir??"";$("#mFac").value=mm.fac!=null?String(mm.fac).replace(".",","):"";stv=mm.st||0;$("#mSt").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",+x.dataset.v===stv));};
+  $("#fx").onclick=closeSheet;
+  $("#mBilan").onclick=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;closeSheet();selMonth=kk;tab="bilan";saveUI();render();window.scrollTo(0,0);};
+  $("#mf").onsubmit=e=>{e.preventDefault();const kk=key();
+    if(!/^\d{4}-\d{2}$/.test(kk)){$("#mMsg").textContent="Choisis un mois.";return;}
+    const dv=$("#mDir").value.trim(),fv=$("#mFac").value.trim();
+    const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);
+    if(dv!==""&&!isFinite(n)){$("#mMsg").textContent="Le nombre de courses doit être un nombre, par exemple 78.";return;}
+    const f=parseMoney(fv);if(fv!==""&&f==null){$("#mMsg").textContent="Le montant doit être un nombre, par exemple 2309 ou 2309,50.";return;}
+    const mm=M(kk);mm.dir=n;mm.fac=f;mm.st=stv;mm.iu=Date.now();touch(kk);
+    closeSheet();suiviYear=kk.slice(0,4);render();toast(monthLabel(kk)+" enregistré.");};
 }
 
 /* ---------- Réglages ---------- */
@@ -564,7 +701,7 @@ function bindPlus(){
   $("#wipe").onclick=()=>{
     $("#wipeZone").innerHTML=`<div class="confirm"><b>Effacer ${plural(countAll(),"course")} ?</b><span class="small" style="color:var(--ink)">Crée d'abord un code de transfert si tu veux garder une copie.${sync==="account"?" L'effacement touche aussi ta sauvegarde sur le compte.":""}</span><div class="row2"><button class="btn ghost" id="wNo">Annuler</button><button class="btn danger" id="wYes">Effacer</button></div></div>`;
     $("#wNo").onclick=render;
-    $("#wYes").onclick=()=>{const now=Date.now();for(const k in S.m){const m=S.m[k];for(const id in m.c){m.x[id]=now;}m.c={};m.dir=null;m.fac=null;m.iu=now;touch(k);}render();toast("Toutes les courses ont été effacées.");};
+    $("#wYes").onclick=()=>{const now=Date.now();for(const k in S.m){const m=S.m[k];for(const id in m.c){m.x[id]=now;}m.c={};m.dir=null;m.fac=null;m.st=0;m.iu=now;touch(k);}render();toast("Toutes les courses ont été effacées.");};
   };
 }
 
@@ -584,10 +721,11 @@ function openForm(ref,defDate){
   <form id="cf" class="stack" autocomplete="off">
     <div class="field"><label for="fd">Date</label><input class="inp" id="fd" type="date" value="${c.d}" required></div>
     <div class="trip">
-      <div class="field"><label for="ff">Départ</label><input class="inp" id="ff" value="${esc(c.f)}" placeholder="Cannes" autocapitalize="words"></div>
+      <div class="field"><label for="ff">Départ</label><input class="inp" id="ff" value="${esc(c.f)}" placeholder="Ville ou code postal" autocapitalize="words"></div>
       <button type="button" class="swap" id="fsw" aria-label="Inverser départ et arrivée">⇄</button>
-      <div class="field"><label for="ft">Arrivée</label><input class="inp" id="ft" value="${esc(c.t)}" placeholder="Nice" autocapitalize="words"></div>
+      <div class="field"><label for="ft">Arrivée</label><input class="inp" id="ft" value="${esc(c.t)}" placeholder="Ville ou code postal" autocapitalize="words"></div>
     </div>
+    <div class="sgl"><span id="spl">Départ</span> · tape 3 lettres ou un code postal</div>
     <div class="sugg" id="sp"></div>
     <div class="field"><label for="fc">Client</label><input class="inp" id="fc" value="${esc(c.c)}" placeholder="Nicolas Meynadier" autocapitalize="words"></div>
     <div class="sugg" id="scl"></div>
@@ -600,14 +738,13 @@ function openForm(ref,defDate){
     ${edit?'<div id="delZone"><button type="button" class="btn ghost block" id="fdel" style="color:var(--bad)">Supprimer cette course</button></div>':""}
   </form>`);
   let lastPlace="ff",priceTouched=!!edit&&c.p!=null;
-  const places=freq(["f","t"]);["Cannes","Nice","Monaco"].forEach(p=>{if(!places.some(x=>norm(x)===norm(p)))places.push(p);});
   const clients=freq(["c"]);
-  const suggest=(el,list,input)=>{const q=norm(input.value);const items=list.filter(v=>!q||norm(v).includes(q)&&norm(v)!==q).slice(0,10);
-    el.innerHTML=items.map(v=>`<button type="button" class="sg">${esc(v)}</button>`).join("");
-    el.querySelectorAll(".sg").forEach((b,i)=>b.onclick=()=>{input.value=items[i];input.dispatchEvent(new Event("input"));
+  const suggest=(el,items,input)=>{
+    el.innerHTML=items.map(o=>`<button type="button" class="sg">${esc(o.v)}${o.cp?`<small>${esc(o.cp)}</small>`:""}</button>`).join("");
+    el.querySelectorAll(".sg").forEach((b,i)=>b.onclick=()=>{input.value=items[i].v;input.dispatchEvent(new Event("input"));
       if(input.id==="ff"&&!$("#ft").value){$("#ft").focus();}else if(input.id==="ft"&&!$("#fc").value){$("#fc").focus();}});};
-  const refreshP=()=>suggest($("#sp"),places,$("#"+lastPlace));
-  const refreshC=()=>suggest($("#scl"),clients,$("#fc"));
+  const refreshP=()=>{const inp=$("#"+lastPlace);$("#spl").textContent=lastPlace==="ff"?"Départ":"Arrivée";suggest($("#sp"),placeSuggest(inp.value),inp);};
+  const refreshC=()=>{const q=norm($("#fc").value);suggest($("#scl"),clients.filter(v=>!q||norm(v).includes(q)&&norm(v)!==q).slice(0,10).map(v=>({v})),$("#fc"));};
   const autoPrice=()=>{if(priceTouched)return;const p=lastPrice($("#ff").value,$("#ft").value,$("#fc").value);$("#fp").value=p!=null?String(p).replace(".",","):"";};
   ["ff","ft"].forEach(id=>{const el=$("#"+id);el.onfocus=()=>{lastPlace=id;refreshP();};el.oninput=()=>{lastPlace=id;refreshP();autoPrice();};});
   $("#fc").oninput=()=>{refreshC();autoPrice();};
@@ -617,7 +754,7 @@ function openForm(ref,defDate){
   $("#fx").onclick=closeSheet;
   $("#cf").onsubmit=e=>{
     e.preventDefault();
-    const d=$("#fd").value,f=canon($("#ff").value,["f","t"]),t=canon($("#ft").value,["f","t"]),cl=canon($("#fc").value,["c"]);
+    const d=$("#fd").value,f=canonPlace($("#ff").value),t=canonPlace($("#ft").value),cl=canon($("#fc").value,["c"]);
     const pv=$("#fp").value.trim(),p=parseMoney(pv);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$("#fmsg").textContent="Choisis une date.";return;}
     if(!f&&!t){$("#fmsg").textContent="Indique au moins le départ ou l'arrivée.";return;}
