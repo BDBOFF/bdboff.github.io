@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="English Go">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>English Go</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one-column phone app shell, bottom tab bar, full-screen lesson sheet */
+:root{
+  --bg:#F2F4FA; --surface:#FFFFFF; --ink:#141C33; --muted:#5A6482; --line:#DDE2EE;
+  --accent:#2B52DB; --accent-ink:#FFFFFF; --accent-soft:#E2E8FD;
+  --gold:#D9921A; --gold-soft:#FBEFD8;
+  --ok:#17905A; --ok-soft:#DCF3E7; --bad:#C93D35; --bad-soft:#FAE3E1;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Figtree", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1222; --surface:#171F38; --ink:#E8ECF7; --muted:#9AA4C3; --line:#2A3452;
+  --accent:#7E9BFF; --accent-ink:#0D1222; --accent-soft:#212C55;
+  --gold:#F2B94D; --gold-soft:#3A2E14;
+  --ok:#4CC98C; --ok-soft:#14382A; --bad:#FF7B71; --bad-soft:#41201E; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0D1222; --surface:#171F38; --ink:#E8ECF7; --muted:#9AA4C3; --line:#2A3452;
+  --accent:#7E9BFF; --accent-ink:#0D1222; --accent-soft:#212C55;
+  --gold:#F2B94D; --gold-soft:#3A2E14;
+  --ok:#4CC98C; --ok-soft:#14382A; --bad:#FF7B71; --bad-soft:#41201E; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+.app{max-width:540px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
+.brand span{color:var(--accent)}
+.chips{display:flex;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-weight:700;font-size:.9rem;font-variant-numeric:tabular-nums}
+.chip svg{width:16px;height:16px}
+.chip.fire{color:var(--gold)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.label{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.goal-row{display:flex;justify-content:space-between;align-items:baseline;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:99px;background:var(--accent-soft);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.bar.gold{background:var(--gold-soft)} .bar.gold>i{background:var(--gold)}
+.hero{background:var(--accent);color:var(--accent-ink);border:0}
+.hero .label{color:inherit;opacity:.8}
+.hero h2{font-size:1.7rem}
+.hero p{margin:0;opacity:.9}
+.btn{border:0;border-radius:14px;padding:15px 18px;font-weight:700;font-size:1.05rem;background:var(--accent);color:var(--accent-ink);width:100%;transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.light{background:var(--accent-ink);color:var(--accent)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.ok{background:var(--ok);color:#fff} .btn.bad{background:var(--bad);color:#fff}
+.row{display:flex;gap:10px;align-items:center}
+.sp{flex:1;min-width:0}
+.audio{flex:none;width:44px;height:44px;border-radius:12px;border:0;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.audio svg{width:22px;height:22px}
+.audio.big{width:88px;height:88px;border-radius:24px}
+.audio.big svg{width:42px;height:42px}
+.pod{font-family:var(--f-display);font-size:1.25rem;font-weight:600}
+.fr{color:var(--muted)}
+.units{display:flex;flex-direction:column;gap:10px}
+.unit{display:flex;gap:14px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;width:100%}
+.unit .num{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem;background:var(--accent-soft);color:var(--accent)}
+.unit.done .num{background:var(--ok-soft);color:var(--ok)}
+.unit.locked{opacity:.55}
+.unit.locked .num{background:var(--line);color:var(--muted)}
+.unit h3{font-size:1.08rem}
+.unit p{margin:2px 0 8px;color:var(--muted);font-size:.9rem}
+.unit .bar{height:6px}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:5}
+.tabs div{display:flex;max-width:540px;width:100%}
+.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;font-size:.78rem;font-weight:600;color:var(--muted);border-radius:12px}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--accent)}
+.search{width:100%;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
+.vgroup{display:flex;flex-direction:column;gap:2px}
+.vgroup h3{font-size:1rem;margin:8px 0 6px}
+.vitem{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.vitem:last-child{border-bottom:0}
+.vitem b{display:block;font-weight:700}
+.vitem small{color:var(--muted)}
+.dots{display:flex;gap:3px;flex:none}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ok)}
+.pr{font-style:italic;color:var(--gold)}
+.tip h3{font-size:1.15rem}
+.tip p,.tip li{margin:0;color:var(--ink)}
+.tip ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.tip code{font-family:var(--f-body);font-weight:700;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:6px}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+select{font:inherit;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+
+/* Lesson sheet */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.sheet-in{max-width:540px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 0;min-height:0}
+.lhead{display:flex;align-items:center;gap:12px}
+.close{border:0;background:none;width:40px;height:40px;display:grid;place-items:center;color:var(--muted);border-radius:12px}
+.close svg{width:24px;height:24px}
+.lhead .bar{flex:1;height:12px}
+.stage{flex:1;overflow-y:auto;padding:22px 2px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.q-title{font-size:1.35rem}
+.q-sub{color:var(--muted);margin:-8px 0 0}
+.prompt{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.prompt .big{font-family:var(--f-display);font-size:1.6rem;font-weight:600;line-height:1.15}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;padding:15px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-size:1.05rem;font-weight:600}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.intro{align-items:center;text-align:center;gap:10px}
+.intro .new{background:var(--gold-soft);color:var(--gold);font-weight:800;font-size:.75rem;letter-spacing:.08em;padding:4px 10px;border-radius:99px;text-transform:uppercase}
+.intro .w{font-family:var(--f-display);font-size:2.3rem;font-weight:800;line-height:1.05}
+.intro .t{font-size:1.15rem;color:var(--muted)}
+.slow{border:0;background:none;color:var(--accent);font-weight:700;font-size:.9rem;padding:6px}
+.answer{min-height:64px;border-bottom:2px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;padding-bottom:10px;align-content:flex-start}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.tile{padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:600;font-size:1.02rem}
+.tile.used{visibility:hidden}
+.typein{width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:1.15rem}
+.lfoot{padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.fb{border-radius:14px;padding:12px 14px;font-weight:600}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb span{display:block;color:var(--ink);font-weight:500;margin-top:2px}
+.end{align-items:center;text-align:center;justify-content:center;gap:14px}
+.end .xp{font-family:var(--f-display);font-size:4rem;font-weight:800;color:var(--gold);line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+.stat b{display:block;font-family:var(--f-display);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted);font-size:.78rem}
+.prow{border:0;background:none;text-align:left;padding:0}
+.unit.job .num{background:var(--gold-soft);color:var(--gold)}
+.showtxt{font-family:var(--f-display);font-size:clamp(2rem,9vw,3rem);font-weight:800;line-height:1.1;text-wrap:balance}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.92rem;z-index:40;max-width:88vw;text-align:center}
+@keyframes pop{0%{transform:scale(.96);opacity:.4}100%{transform:none;opacity:1}}
+.stage>*{animation:pop .2s ease-out}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="root"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ---------------- Contenu pédagogique ---------------- */
+// Chaque mot : [anglais, français, prononciation à la française]
+const UNITS = [
+ {id:"u1", title:"Salutations", sub:"Bonjour, merci, au revoir", items:[
+  ["Hello","Bonjour","hè-lo-ou"],["Hi","Salut","haï"],["Goodbye","Au revoir","goud-baï"],
+  ["Please","S'il te plaît / S'il vous plaît","pliiz"],["Thank you","Merci","thènk-iou"],
+  ["Yes","Oui","yès"],["No","Non","no-ou"],["Sorry","Pardon, désolé","so-ri"],
+  ["Excuse me","Excusez-moi","ex-kiouz mi"],["Good morning","Bonjour (le matin)","goud mor-ning"],
+  ["How are you?","Comment ça va ?","haou ar iou"],["I'm fine","Je vais bien","aïm faïn"],
+  ["You're welcome","De rien","iour wèl-keum"],["Good night","Bonne nuit","goud naït"]],
+  sent:[["Thank you very much","Merci beaucoup"],["Hello, how are you?","Bonjour, comment ça va ?"],["I'm fine, thank you","Je vais bien, merci"],["Excuse me, please","Excusez-moi, s'il vous plaît"]],
+  tip:{t:"La politesse avant tout", b:"<p>Les anglophones disent <code>please</code> et <code>thank you</code> très souvent, même pour des petites choses.</p><ul><li><code>Sorry</code> = pardon, je suis désolé.</li><li><code>Excuse me</code> = pour attirer l'attention de quelqu'un.</li><li>À <code>How are you?</code>, on répond presque toujours <code>I'm fine, thank you</code>.</li></ul>"}},
+ {id:"u2", title:"Me présenter", sub:"Mon nom, d'où je viens", items:[
+  ["I","Je","aï"],["You","Tu, vous","iou"],["My name is","Je m'appelle","maï néïm iz"],
+  ["What is your name?","Comment tu t'appelles ?","ouat iz ior néïm"],["I am","Je suis","aï am"],
+  ["I live in","J'habite à","aï liv inn"],["Nice to meet you","Enchanté(e)","naïs tou miit iou"],
+  ["Where are you from?","D'où viens-tu ?","ouèr ar iou from"],["I am from France","Je viens de France","aï am from frans"],
+  ["I don't understand","Je ne comprends pas","aï dont eunn-deur-stand"],["Can you repeat?","Tu peux répéter ?","kann iou ri-piit"],
+  ["French","Français","frènch"]],
+  sent:[["My name is Paul","Je m'appelle Paul"],["I am from France","Je viens de France"],["I live in Paris","J'habite à Paris"],["Nice to meet you","Enchanté"],["I don't understand","Je ne comprends pas"]],
+  tip:{t:"Le verbe to be (être)", b:"<p>Le verbe le plus important. Apprends-le par cœur :</p><ul><li><code>I am</code> = je suis → <code>I'm</code></li><li><code>you are</code> = tu es, vous êtes → <code>you're</code></li><li><code>he / she / it is</code> = il / elle est → <code>he's</code></li><li><code>we are</code> = nous sommes</li><li><code>they are</code> = ils / elles sont</li></ul><p><code>You</code> sert à la fois pour « tu » et « vous ». Simple !</p>"}},
+ {id:"u3", title:"Les nombres", sub:"Compter, l'âge, les prix", items:[
+  ["One","Un","ouann"],["Two","Deux","tou"],["Three","Trois","thrii (langue entre les dents)"],["Four","Quatre","for"],
+  ["Five","Cinq","faïv"],["Six","Six","siks"],["Seven","Sept","sè-veunn"],["Eight","Huit","éït"],
+  ["Nine","Neuf","naïn"],["Ten","Dix","tènn"],["Twenty","Vingt","touènn-ti"],["One hundred","Cent","ouann heunn-dreud"]],
+  sent:[["I am twenty years old","J'ai vingt ans"],["It costs ten euros","Ça coûte dix euros"],["How old are you?","Quel âge as-tu ?"],["I have two brothers","J'ai deux frères"]],
+  tip:{t:"Attention à l'âge", b:"<p>En anglais, on <b>est</b> son âge, on ne l'<b>a</b> pas.</p><ul><li><code>I am 30</code> ou <code>I am 30 years old</code> = j'ai 30 ans.</li><li>Jamais « I have 30 years ».</li><li>Pour demander : <code>How old are you?</code></li></ul><p>Le son <code>th</code> (three) : mets le bout de la langue entre les dents et souffle.</p>"}},
+ {id:"u4", title:"Famille et gens", sub:"Parler de ses proches", items:[
+  ["Mother","Mère","meu-zeur"],["Father","Père","fa-zeur"],["Brother","Frère","breu-zeur"],["Sister","Sœur","sis-teur"],
+  ["Son","Fils","seunn"],["Daughter","Fille (enfant)","do-teur"],["Child","Enfant","tchaïld"],["Husband","Mari","heuz-beund"],
+  ["Wife","Femme (épouse)","ouaïf"],["Friend","Ami(e)","frènnd"],["Man","Homme","mann"],["Woman","Femme","ou-meunn"]],
+  sent:[["This is my mother","C'est ma mère"],["I have two children","J'ai deux enfants"],["Her husband is nice","Son mari est gentil"],["My friend is French","Mon ami est français"]],
+  tip:{t:"Mon, ton, son…", b:"<p>Les possessifs ne changent jamais selon l'objet :</p><ul><li><code>my</code> = mon, ma, mes</li><li><code>your</code> = ton, ta, tes, votre, vos</li><li><code>his</code> = son, sa, ses (à lui)</li><li><code>her</code> = son, sa, ses (à elle)</li><li><code>our</code> = notre · <code>their</code> = leur</li></ul><p>« Son mari » se dit <code>her husband</code> : on regarde à qui il appartient.</p>"}},
+ {id:"u5", title:"Manger et boire", sub:"Au café, au restaurant", items:[
+  ["Water","Eau","ouo-teur"],["Coffee","Café","ko-fi"],["Tea","Thé","tii"],["Bread","Pain","brèd"],
+  ["Cheese","Fromage","tchiiz"],["Meat","Viande","miit"],["Fish","Poisson","fich"],["Chicken","Poulet","tchi-kinn"],
+  ["Vegetables","Légumes","vèdj-teu-beulz"],["I would like","Je voudrais","aï woud laïk"],["The bill","L'addition","zeu bil"],
+  ["A table for two","Une table pour deux","eu téï-beul for tou"]],
+  sent:[["I would like a coffee, please","Je voudrais un café, s'il vous plaît"],["The bill, please","L'addition, s'il vous plaît"],["A table for two, please","Une table pour deux, s'il vous plaît"],["I don't eat meat","Je ne mange pas de viande"]],
+  tip:{t:"A, an, the", b:"<ul><li><code>a</code> = un, une (devant une consonne) : <code>a coffee</code></li><li><code>an</code> = un, une (devant une voyelle) : <code>an apple</code></li><li><code>the</code> = le, la, les. Un seul mot pour tout !</li></ul><p>Pour commander poliment : <code>I would like…</code> (souvent dit <code>I'd like…</code>).</p>"}},
+ {id:"u6", title:"En ville", sub:"Trouver son chemin", items:[
+  ["Where is…?","Où est… ?","ouèr iz"],["The station","La gare","zeu stéï-cheunn"],["The hotel","L'hôtel","zeu ho-tèl"],
+  ["The toilets","Les toilettes","zeu toï-leuts"],["Left","Gauche","lèft"],["Right","Droite","raït"],
+  ["Straight ahead","Tout droit","stréït eu-hèd"],["Near","Près","nir"],["Far","Loin","far"],["Street","Rue","striit"],
+  ["Ticket","Billet","ti-kit"],["How much is it?","C'est combien ?","haou meutch iz it"]],
+  sent:[["Where is the station?","Où est la gare ?"],["Turn left","Tournez à gauche"],["Is it far?","C'est loin ?"],["How much is the ticket?","Combien coûte le billet ?"]],
+  tip:{t:"Poser une question", b:"<p>Avec <code>to be</code>, on inverse simplement le verbe et le sujet :</p><ul><li><code>It is far</code> → <code>Is it far?</code></li><li><code>The hotel is near</code> → <code>Is the hotel near?</code></li></ul><p>Les mots-questions : <code>where</code> (où), <code>what</code> (quoi), <code>how much</code> (combien), <code>when</code> (quand), <code>who</code> (qui).</p>"}},
+ {id:"u7", title:"Le temps", sub:"Jours, heures, moments", items:[
+  ["Today","Aujourd'hui","tou-déï"],["Tomorrow","Demain","tou-mo-ro-ou"],["Yesterday","Hier","iès-teur-déï"],["Now","Maintenant","naou"],
+  ["Monday","Lundi","meunn-déï"],["Friday","Vendredi","fraï-déï"],["Saturday","Samedi","sa-teur-déï"],["Sunday","Dimanche","seunn-déï"],
+  ["Morning","Matin","mor-ning"],["Evening","Soir","iiv-ning"],["Week","Semaine","ouiik"],["What time is it?","Quelle heure est-il ?","ouat taïm iz it"]],
+  sent:[["See you tomorrow","À demain"],["I work on Monday","Je travaille lundi"],["What time is it?","Quelle heure est-il ?"],["Today is Sunday","Aujourd'hui, c'est dimanche"]],
+  tip:{t:"On, in, at", b:"<ul><li><code>on</code> + jour : <code>on Monday</code> (lundi)</li><li><code>in</code> + moment : <code>in the morning</code> (le matin)</li><li><code>at</code> + heure : <code>at 8</code> (à 8 h)</li></ul><p>Les jours prennent toujours une majuscule : <code>Monday</code>, <code>Friday</code>.</p>"}},
+ {id:"u8", title:"Verbes essentiels", sub:"Les actions de tous les jours", items:[
+  ["To have","Avoir","tou hav"],["To go","Aller","tou go-ou"],["To want","Vouloir","tou ouannt"],["To like","Aimer","tou laïk"],
+  ["To eat","Manger","tou iit"],["To drink","Boire","tou drink"],["To work","Travailler","tou oueurk"],["To speak","Parler","tou spiik"],
+  ["To see","Voir","tou sii"],["To know","Savoir, connaître","tou no-ou"],["To need","Avoir besoin de","tou niid"],["To come","Venir","tou keumm"]],
+  sent:[["I like coffee","J'aime le café"],["She speaks English","Elle parle anglais"],["I don't know","Je ne sais pas"],["We need help","Nous avons besoin d'aide"],["I want to go","Je veux y aller"]],
+  tip:{t:"Le présent en 2 règles", b:"<ul><li>Le verbe ne change presque pas : <code>I work, you work, we work</code>.</li><li>Seule exception : on ajoute <b>-s</b> avec he / she / it : <code>she works</code>.</li></ul><p>Pour dire non : <code>I don't work</code>, <code>she doesn't work</code> (sans le -s).</p>"}},
+ {id:"u9", title:"Survie", sub:"Demander de l'aide", items:[
+  ["Help!","À l'aide !","hèlp"],["I need a doctor","J'ai besoin d'un médecin","aï niid eu dok-teur"],["I am lost","Je suis perdu(e)","aï am lost"],
+  ["I am sick","Je suis malade","aï am sik"],["Do you speak French?","Parlez-vous français ?","dou iou spiik frènch"],
+  ["Can you help me?","Pouvez-vous m'aider ?","kann iou hèlp mi"],["Slowly, please","Lentement, s'il vous plaît","slo-ou-li pliiz"],
+  ["Hospital","Hôpital","hos-pi-teul"],["Pharmacy","Pharmacie","far-ma-si"],["It hurts here","J'ai mal ici","it heurts hir"],
+  ["Call the police","Appelez la police","kol zeu po-liis"],["I'm allergic to","Je suis allergique à","aïm eu-leur-djik tou"]],
+  sent:[["Can you help me, please?","Pouvez-vous m'aider, s'il vous plaît ?"],["I need a doctor","J'ai besoin d'un médecin"],["Where is the hospital?","Où est l'hôpital ?"],["Speak slowly, please","Parlez lentement, s'il vous plaît"]],
+  tip:{t:"Can = pouvoir", b:"<ul><li><code>I can</code> = je peux · <code>I can't</code> = je ne peux pas</li><li><code>Can you…?</code> = peux-tu… ? pouvez-vous… ?</li><li>Le verbe suivant reste simple : <code>Can you help me?</code></li></ul><p>Si tu ne comprends rien : <code>Slowly, please</code> ou <code>Can you repeat?</code>.</p>"}},
+ {id:"u10", title:"Décrire", sub:"Les adjectifs utiles", items:[
+  ["Good","Bon, bien","goud"],["Bad","Mauvais","bad"],["Big","Grand, gros","big"],["Small","Petit","smol"],
+  ["Hot","Chaud","hot"],["Cold","Froid","ko-old"],["Happy","Heureux, content","ha-pi"],["Tired","Fatigué","taï-eurd"],
+  ["Beautiful","Beau, belle","biou-ti-feul"],["Expensive","Cher","ex-pènn-siv"],["Cheap","Pas cher","tchiip"],["Easy","Facile","ii-zi"]],
+  sent:[["It is very cold today","Il fait très froid aujourd'hui"],["I am tired","Je suis fatigué"],["This hotel is expensive","Cet hôtel est cher"],["English is easy","L'anglais, c'est facile"]],
+  tip:{t:"L'adjectif ne bouge pas", b:"<ul><li>Il se place <b>avant</b> le nom : <code>a big house</code> (une grande maison).</li><li>Il ne s'accorde jamais : <code>big houses</code>, pas « bigs ».</li></ul><p>Pour renforcer : <code>very</code> = très → <code>very good</code>.</p>"}},
+ {id:"c1", track:"job", title:"À la porte", sub:"Remettre la commande", items:[
+  ["Your delivery","Votre livraison","ior di-li-veu-ri"],["I have your order","J'ai votre commande","aï hav ior or-deur"],
+  ["Is this for you?","C'est pour vous ?","iz ziss for iou"],["Here is your order","Voici votre commande","hir iz ior or-deur"],
+  ["Here you go","Tenez, voilà","hir iou go-ou"],["Your name, please?","Votre nom, s'il vous plaît ?","ior néïm pliiz"],
+  ["Is this the right address?","C'est bien la bonne adresse ?","iz ziss zeu raït eu-drèss"],["Can you sign here?","Pouvez-vous signer ici ?","kann iou saïn hir"],
+  ["Enjoy your meal","Bon appétit","ènn-djoï ior miil"],["Have a nice day","Bonne journée","hav eu naïs déï"],
+  ["Have a good evening","Bonne soirée","hav eu goud iiv-ning"],["Thank you, bye!","Merci, au revoir !","thènk iou baï"]],
+  sent:[["Hello, I have your delivery","Bonjour, j'ai votre livraison"],["Here is your order, enjoy your meal","Voici votre commande, bon appétit"],["Is this for you?","C'est pour vous ?"],["Thank you, have a nice day","Merci, bonne journée"]],
+  tip:{t:"3 phrases suffisent pour une livraison", b:"<ul><li>En arrivant : <code>Hello, I have your delivery</code>.</li><li>En donnant le sac : <code>Here you go</code> ou <code>Here is your order</code>.</li><li>En partant : <code>Have a nice day</code> (le soir : <code>Have a good evening</code>).</li></ul><p>Pour un repas, ajoute <code>Enjoy your meal</code> ou juste <code>Enjoy!</code>. Un sourire fait le reste.</p>"}},
+ {id:"c2", track:"job", title:"Trouver le client", sub:"Adresse, code, étage", items:[
+  ["I'm outside","Je suis dehors","aïm aout-saïd"],["I'm downstairs","Je suis en bas","aïm daoun-stèrz"],
+  ["I'm at the entrance","Je suis à l'entrée","aïm at zi ènn-treunss"],["What is the door code?","Quel est le code de la porte ?","ouat iz zeu dor ko-oud"],
+  ["Which floor?","Quel étage ?","ouitch flor"],["Which building?","Quel bâtiment ?","ouitch bil-ding"],
+  ["Can you come down?","Pouvez-vous descendre ?","kann iou keumm daoun"],["I can't find the address","Je ne trouve pas l'adresse","aï kannt faïnd zi eu-drèss"],
+  ["I'm on my way","Je suis en route","aïm onn maï ouéï"],["Please call me","Appelez-moi, s'il vous plaît","pliiz kol mi"],
+  ["The gate is closed","Le portail est fermé","zeu guéït iz klo-ouzd"],["At the reception","À la réception","at zeu ri-sèp-cheunn"],
+  ["Ground floor","Rez-de-chaussée","graound flor"]],
+  sent:[["I'm downstairs, can you come down?","Je suis en bas, pouvez-vous descendre ?"],["What is the door code?","Quel est le code de la porte ?"],["I'm on my way, five minutes","Je suis en route, cinq minutes"],["I'm at the reception of the hotel","Je suis à la réception de l'hôtel"]],
+  tip:{t:"Étages et messages courts", b:"<ul><li><code>Ground floor</code> = rez-de-chaussée. <code>First floor</code> = 1er étage (pour les Britanniques).</li><li>Attention, pour un Américain, <code>first floor</code> = rez-de-chaussée. Dans le doute, demande <code>Which floor?</code> et montre avec les doigts.</li><li>Dans le chat de l'appli, fais court : <code>I'm downstairs.</code> suffit.</li></ul><p>À Cannes, pense à <code>At the reception</code> pour les hôtels et <code>The gate is closed</code> pour les résidences.</p>"}},
+ {id:"c3", track:"job", title:"Imprévus", sub:"Retard, paiement, problèmes", items:[
+  ["Sorry for the delay","Désolé pour le retard","so-ri for zeu di-léï"],["There is a lot of traffic","Il y a beaucoup de circulation","zèr iz eu lot ov tra-fik"],
+  ["Cash or card?","Espèces ou carte ?","kach or kard"],["I don't have change","Je n'ai pas de monnaie","aï dont hav tchéïndj"],
+  ["One moment, please","Un instant, s'il vous plaît","ouann mo-ou-meunt pliiz"],["Please check your order","Vérifiez votre commande, s'il vous plaît","pliiz tchèk ior or-deur"],
+  ["Something is missing?","Il manque quelque chose ?","seum-thing iz mi-sing"],["Please contact the app","Contactez l'application","pliiz konn-takt zi ap"],
+  ["What is your code?","Quel est votre code ?","ouat iz ior ko-oud"],["I'll leave it at the door","Je la laisse devant la porte","aïl liiv it at zeu dor"],
+  ["Can you write it?","Pouvez-vous l'écrire ?","kann iou raït it"],["Is everything okay?","Tout va bien ?","iz èv-ri-thing o-ké"],
+  ["No problem","Pas de problème","no-ou pro-bleum"]],
+  sent:[["Sorry for the delay, there is a lot of traffic","Désolé pour le retard, il y a beaucoup de circulation"],["I don't have change","Je n'ai pas de monnaie"],["Please contact the app","Contactez l'application, s'il vous plaît"],["No problem, have a nice day","Pas de problème, bonne journée"]],
+  tip:{t:"Rester calme et poli", b:"<ul><li>Commence par t'excuser : <code>Sorry for the delay</code>. Ça désamorce tout.</li><li>Un problème avec la commande ? Ce n'est pas ta faute : <code>Please contact the app</code>.</li><li>Tu ne comprends pas ? <code>Can you write it?</code> puis utilise un traducteur.</li></ul><p>Termine toujours par <code>No problem</code> et <code>Have a nice day</code>.</p>"}}
+];
+UNITS.forEach(u=>u.items.forEach((it,i)=>{it.key=u.id+"-"+i; it.unit=u.id;}));
+const ALL = UNITS.flatMap(u=>u.items);
+const BYKEY = Object.fromEntries(ALL.map(it=>[it.key,it]));
+const ALLSENT = UNITS.flatMap(u=>u.sent);
+
+/* ---------------- Progression ---------------- */
+const LS="englishgo.v1";
+const DEF=()=>({v:1,xp:0,goal:30,days:{},units:{},cards:{},updated:0});
+function normalizeState(s){const d=DEF();return Object.assign(d,s||{},{days:(s&&s.days)||{},units:(s&&s.units)||{},cards:(s&&s.cards)||{}});}
+function readLocal(){try{const r=localStorage.getItem(LS);return r?normalizeState(JSON.parse(r)):DEF();}catch(e){return DEF();}}
+let S=readLocal();
+let remoteRef=null, writing=Promise.resolve(), remoteTimer=null, syncMsg="Progression enregistrée sur cet appareil.";
+function persistLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function save(){S.updated=Date.now();persistLocal();queueRemote();}
+function queueRemote(){if(!remoteRef)return;clearTimeout(remoteTimer);remoteTimer=setTimeout(()=>{const snap=JSON.parse(JSON.stringify(S));writing=writing.then(()=>remoteRef.set(snap)).catch(()=>{});},1200);}
+const dayKey=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const todayXP=()=>S.days[dayKey()]||0;
+function streak(){let n=0;const d=new Date();if(!S.days[dayKey(d)])d.setDate(d.getDate()-1);while(S.days[dayKey(d)]){n++;d.setDate(d.getDate()-1);}return n;}
+const seen=k=>!!S.cards[k];
+const unitSeen=u=>u.items.filter(it=>seen(it.key)).length;
+const trackOf=u=>UNITS.filter(x=>(x.track||"base")===(u.track||"base"));
+const prevUnit=i=>{const u=UNITS[i],tr=trackOf(u),j=tr.indexOf(u);return j>0?tr[j-1]:null;};
+const unitUnlocked=i=>{const p=prevUnit(i);return !p||unitSeen(p)/p.items.length>=0.5;};
+const unitLabel=u=>{const j=trackOf(u).indexOf(u)+1;return u.track==="job"?"C"+j:String(j);};
+const unitName=u=>u.track==="job"?"Coursier "+unitLabel(u):"Unité "+unitLabel(u);
+const unitDone=u=>unitSeen(u)===u.items.length&&u.items.every(it=>(S.cards[it.key].b||1)>=2);
+const dueList=()=>Object.entries(S.cards).filter(([k,c])=>BYKEY[k]&&c.d<=Date.now()).sort((a,b)=>a[1].d-b[1].d).map(([k])=>k);
+const DAYS=[0,0.4,2,4,9,21];
+
+/* ---------------- Transfert entre versions ---------------- */
+function exportCode(){const j=JSON.stringify({x:S.xp,g:S.goal,d:S.days,u:S.units,c:S.cards,t:S.updated});return "EGO1:"+btoa(unescape(encodeURIComponent(j)));}
+function importCode(txt){
+  const m=String(txt||"").replace(/\s+/g,"").match(/EGO1:([A-Za-z0-9+/=]+)/);
+  if(!m)return "Code introuvable. Il doit commencer par EGO1: — copie-le en entier.";
+  let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));}catch(e){return "Ce code est abîmé. Recopie-le en entier depuis l'autre version.";}
+  if(!o||typeof o!=="object"||!o.c)return "Ce code ne contient pas de progression.";
+  const before=Object.keys(S.cards).length;
+  S.xp=Math.max(S.xp||0,o.x||0);
+  if(o.t>(S.updated||0)&&o.g)S.goal=o.g;
+  Object.entries(o.d||{}).forEach(([k,v])=>{S.days[k]=Math.max(S.days[k]||0,+v||0);});
+  Object.entries(o.u||{}).forEach(([k,v])=>{const a=S.units[k]||{lessons:0};S.units[k]={lessons:Math.max(a.lessons||0,(v&&v.lessons)||0)};});
+  Object.entries(o.c||{}).forEach(([k,v])=>{if(!BYKEY[k]||!v)return;const a=S.cards[k];if(!a||v.b>a.b||(v.b===a.b&&v.d>a.d))S.cards[k]={b:Math.min(5,Math.max(1,+v.b||1)),d:+v.d||Date.now()};});
+  save();render();
+  const added=Object.keys(S.cards).length-before;
+  return "Progression chargée"+(added>0?" : "+added+" mot"+(added>1?"s":"")+" ajouté"+(added>1?"s":""):"")+".";
+}
+
+/* ---------------- Audio ---------------- */
+let tts=null;
+if(window.claude&&window.claude.use){claude.use("tts").then(t=>{tts=t;}).catch(()=>{});}
+let voice=null;
+function pickVoice(){const ss=window.speechSynthesis;if(!ss)return null;const vs=ss.getVoices();return vs.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha|Google|Natural|Enhanced/i.test(v.name))||vs.find(v=>/en[-_](US|GB)/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}
+if(window.speechSynthesis){voice=pickVoice();speechSynthesis.onvoiceschanged=()=>{voice=pickVoice();};}
+function webSay(text,slow){const ss=window.speechSynthesis;if(!ss){toast("Audio indisponible sur cet appareil");return;}ss.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";if(voice)u.voice=voice;u.rate=slow?0.62:0.88;ss.speak(u);}
+function say(text,slow){const clean=text.replace(/…/g,"");if(tts){tts.speak(clean,{language:"en",rate:slow?0.72:0.95}).catch(e=>{if(e&&e.code!=="replaced"&&e.code!=="stopped")webSay(clean,slow);});return;}webSay(clean,slow);}
+
+/* ---------------- Utilitaires ---------------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=a=>a[Math.random()*a.length|0];
+function norm(s){return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[’‘]/g,"'")
+ .replace(/\bi'm\b/g,"i am").replace(/\bdon't\b/g,"do not").replace(/\bdoesn't\b/g,"does not").replace(/\byou're\b/g,"you are")
+ .replace(/\bi'd\b/g,"i would").replace(/\bcan't\b/g,"cannot").replace(/\bcan not\b/g,"cannot").replace(/\bit's\b/g,"it is")
+ .replace(/\bwhat's\b/g,"what is").replace(/\bwhere's\b/g,"where is").replace(/[^a-z0-9' ]/g," ").replace(/\s+/g," ").trim().replace(/^to /,"");}
+function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+let toastT;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600);}
+const IC={
+ spk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+ fire:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 10.5 11C10 7 12 2 12 2z"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>',
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/></svg>',
+ book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg>',
+ bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>',
+ bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h16l-1.2 12H5.2z"/><path d="M8.5 8V6.5a3.5 3.5 0 0 1 7 0V8"/></svg>',
+ copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+};
+const audioBtn=(t,cls="")=>`<button class="audio ${cls}" data-say="${esc(t)}" aria-label="Écouter : ${esc(t)}">${IC.spk}</button>`;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b){say(b.dataset.say,b.dataset.slow==="1");}});
+
+/* ---------------- Écrans principaux ---------------- */
+let tab="home", query="", confirmReset=false;
+function render(){
+  if(L){renderLesson();return;}
+  const root=$("#root");
+  const body= tab==="home"?homeView(): tab==="job"?jobView(): tab==="words"?wordsView(): guideView();
+  root.innerHTML=`<main class="app">${body}</main>
+  <nav class="tabs" aria-label="Navigation"><div>
+   ${[["home","Parcours",IC.home],["job","Livraison",IC.bag],["words","Mots",IC.book],["guide","Guide",IC.bulb]].map(([id,l,ic])=>`<button class="tab" data-tab="${id}" ${tab===id?'aria-current="page"':""}>${ic}${l}</button>`).join("")}
+  </div></nav>`;
+  root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;confirmReset=false;showP=null;render();scrollTo(0,0);});
+  bindView();
+}
+function header(){return `<header class="top"><div class="brand">English<span>Go</span></div>
+ <div class="chips"><span class="chip fire" title="Jours d'affilée">${IC.fire}${streak()}</span><span class="chip" style="color:var(--gold)" title="Points d'expérience">${IC.star}${S.xp}</span></div></header>`;}
+function nextUnitIndex(){const order=UNITS.map((u,i)=>i).sort((a,b)=>(UNITS[a].track==="job"?0:1)-(UNITS[b].track==="job"?0:1));
+ for(const i of order){if(unitUnlocked(i)&&!unitDone(UNITS[i]))return i;}return 0;}
+function unitList(track){return UNITS.map((u,i)=>[u,i]).filter(([u])=>(u.track||"base")===track).map(([u,i])=>{const s=unitSeen(u),lk=!unitUnlocked(i),dn=unitDone(u);
+   return `<button class="unit ${lk?"locked":""} ${dn?"done":""} ${u.track==="job"?"job":""}" data-unit="${i}">
+   <span class="num">${lk?IC.lock:unitLabel(u)}</span><span class="sp"><h3>${esc(u.title)}</h3><p>${dn?"Terminée":esc(u.sub)}</p>
+   <span class="bar" style="display:block"><i style="width:${s/u.items.length*100}%"></i></span></span></button>`;}).join("");}
+function homeView(){
+  const tx=todayXP(),g=S.goal,ni=nextUnitIndex(),nu=UNITS[ni],due=dueList().length,totalSeen=Object.keys(S.cards).length;
+  const sent=ALLSENT[(Math.floor(Date.now()/864e5))%ALLSENT.length];
+  const first=totalSeen===0;
+  return `${header()}
+  <section class="card"><div class="goal-row"><span class="label">Objectif du jour</span><b>${Math.min(tx,g)} / ${g} XP</b></div>
+   <div class="bar gold"><i style="width:${Math.min(100,tx/g*100)}%"></i></div>
+   <span class="small muted">${tx>=g?"Objectif atteint. Bravo, reviens demain pour garder ta série !":"Une leçon rapporte environ 25 XP. Compte 3 à 4 minutes."}</span></section>
+  <section class="card hero"><span class="label">${first?"Commence ici":"Ta prochaine leçon"} · ${unitName(nu)}</span>
+   <h2>${esc(nu.title)}</h2><p>${esc(nu.sub)} · ${unitSeen(nu)}/${nu.items.length} mots vus</p>
+   <button class="btn light" data-start="${nu.id}">${first?"Commencer ma première leçon":"Continuer"}</button></section>
+  ${totalSeen?`<section class="card"><div class="row"><div class="sp"><span class="label">Révision intelligente</span><h3 style="margin-top:4px">${due?due+" mot"+(due>1?"s":"")+" à revoir":"Tout est à jour"}</h3>
+   <span class="small muted">${due?"Revois-les avant de les oublier.":"Les mots reviendront au bon moment."}</span></div></div>
+   <button class="btn ${due?"":"ghost"}" data-review="1">${due?"Réviser maintenant":"Révision libre"}</button></section>`:""}
+  <section class="card"><span class="label">Phrase du jour</span>
+   <div class="row">${audioBtn(sent[0])}<div class="sp"><div class="pod">${esc(sent[0])}</div><div class="fr">${esc(sent[1])}</div></div></div></section>
+  <section style="display:flex;flex-direction:column;gap:10px"><h2 style="font-size:1.3rem">Spécial coursier</h2>
+   <p class="small muted" style="margin:-4px 0 0">Les phrases pour tes livraisons à Cannes.</p><div class="units">${unitList("job")}</div></section>
+  <section style="display:flex;flex-direction:column;gap:10px"><h2 style="font-size:1.3rem">Les bases</h2><div class="units">${unitList("base")}</div></section>`;
+}
+function wordsView(){
+  const q=norm(query);
+  const groups=UNITS.map((u,i)=>{const its=u.items.filter(it=>!q||norm(it[0]).includes(q)||norm(it[1]).includes(q));
+   if(!its.length)return "";
+   return `<div class="card vgroup"><h3>${unitLabel(u)}. ${esc(u.title)}</h3>${its.map(it=>{const c=S.cards[it.key];const b=c?c.b:0;
+    return `<div class="vitem">${audioBtn(it[0])}<div class="sp"><b>${esc(it[0])}</b><small>${esc(it[1])} · <span class="pr">≈ ${esc(it[2])}</span></small></div>
+    <span class="dots" title="${c?"Niveau "+b+" sur 5":"Pas encore vu"}">${[1,2,3,4,5].map(n=>`<i class="${n<=b?"on":""}"></i>`).join("")}</span></div>`;}).join("")}</div>`;}).join("");
+  return `${header()}<h1 style="font-size:1.6rem">Mes mots</h1>
+  <p class="muted small" style="margin:-8px 0 0">Touche le haut-parleur pour écouter. Les points verts montrent ce que tu maîtrises.</p>
+  <input class="search" id="q" type="search" placeholder="Chercher un mot en anglais ou en français" value="${esc(query)}" autocomplete="off">
+  <div id="wlist" style="display:flex;flex-direction:column;gap:12px">${groups||'<p class="muted">Aucun mot trouvé.</p>'}</div>`;
+}
+const MSGS=[
+ ["Hello, I'm on my way. I will arrive in 5 minutes.","Bonjour, je suis en route. J'arrive dans 5 minutes."],
+ ["Hello, I'm downstairs. Can you come down, please?","Bonjour, je suis en bas. Pouvez-vous descendre, s'il vous plaît ?"],
+ ["Hello, what is the door code, please?","Bonjour, quel est le code de la porte, s'il vous plaît ?"],
+ ["I'm outside the building. Which floor are you on?","Je suis devant l'immeuble. Vous êtes à quel étage ?"],
+ ["I can't find your address. Can you call me, please?","Je ne trouve pas votre adresse. Pouvez-vous m'appeler ?"],
+ ["I'm at the hotel reception with your order.","Je suis à la réception de l'hôtel avec votre commande."],
+ ["Sorry, there is a lot of traffic. I will be 10 minutes late.","Désolé, il y a beaucoup de circulation. J'aurai 10 minutes de retard."],
+ ["Your order is at your door. Have a nice day!","Votre commande est devant votre porte. Bonne journée !"]];
+let showP=null;
+function jobView(){
+  const groups=UNITS.filter(u=>u.track==="job").map(u=>({t:u.title,list:u.items.map(it=>[it[0],it[1]]).concat(u.sent)}));
+  const row=(p,i,kind)=>`<div class="vitem">${audioBtn(p[0])}<button class="sp prow" data-show="${kind}:${i}"><b>${esc(p[0])}</b><small>${esc(p[1])}</small></button></div>`;
+  let n=0;const flat=[];
+  const html=groups.map(g=>`<div class="card vgroup"><h3>${esc(g.t)}</h3>${g.list.map(p=>{flat.push(p);return row(p,n++,"p");}).join("")}</div>`).join("");
+  jobView.flat=flat;
+  return `${header()}<h1 style="font-size:1.6rem">Livraison</h1>
+  <p class="muted small" style="margin:-8px 0 0">Pendant une livraison : touche le haut-parleur pour faire entendre la phrase au client, ou touche la phrase pour l'afficher en grand et la lui montrer.</p>
+  <div class="card vgroup"><h3>Messages pour le chat de l'appli</h3><p class="small muted" style="margin:0 0 4px">Copie, puis colle dans la conversation avec le client.</p>
+   ${MSGS.map((m,i)=>`<div class="vitem"><button class="sp prow" data-show="m:${i}"><b>${esc(m[0])}</b><small>${esc(m[1])}</small></button><button class="audio" data-copy="${i}" aria-label="Copier le message">${IC.copy}</button></div>`).join("")}</div>
+  ${html}
+  ${showP?`<div class="sheet show" role="dialog" aria-label="Phrase pour le client"><div class="sheet-in">
+   <div class="lhead"><button class="close" id="hideP" aria-label="Fermer">${IC.x}</button><span class="sp"></span></div>
+   <div class="stage" style="justify-content:center;text-align:center"><div class="showtxt" id="showtxt">${esc(showP[0])}</div><div class="fr" style="font-size:1.1rem">${esc(showP[1])}</div></div>
+   <div class="lfoot"><button class="btn" data-say="${esc(showP[0])}">Écouter</button><button class="btn ghost" id="copyP">Copier le texte</button></div></div></div>`:""}`;
+}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast("Copié. Colle-le dans le chat avec le client.");}
+ catch(e){showP=showP||[t,""];render();const el=$("#showtxt");if(el){const r=document.createRange();r.selectNodeContents(el);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);}toast("Texte sélectionné : appuie dessus et choisis Copier.");}}
+function guideView(){
+  return `${header()}<h1 style="font-size:1.6rem">Guide</h1>
+  <section class="card tip"><h3>La méthode pour progresser vite</h3><ul>
+   <li><b>Un peu chaque jour.</b> 10 à 15 minutes par jour valent mieux qu'une heure le dimanche.</li>
+   <li><b>Répète à voix haute.</b> Écoute chaque mot, puis dis-le. Ta bouche doit s'habituer aussi.</li>
+   <li><b>Fais tes révisions.</b> Elles reviennent juste avant que tu oublies. C'est ce qui fixe les mots.</li>
+   <li><b>Écoute de l'anglais.</b> Une série que tu connais déjà, en anglais avec sous-titres français, puis anglais.</li>
+   <li><b>Ose te tromper.</b> Personne ne parle sans faire d'erreurs au début.</li></ul></section>
+  <section class="card tip"><h3>La prononciation, en bref</h3><ul>
+   <li>Les indications <span class="pr">≈ comme ceci</span> sont écrites « à la française » pour t'aider. Écoute toujours l'audio en priorité.</li>
+   <li><code>th</code> : langue entre les dents (three, mother).</li>
+   <li><code>h</code> : il se prononce, comme un souffle (hello, hotel).</li>
+   <li><code>ee</code> / <code>ea</code> : un « i » long (tea, meet).</li></ul></section>
+  <h2 style="font-size:1.3rem">Grammaire express</h2>
+  ${UNITS.map((u,i)=>{const open=unitUnlocked(i);return `<section class="card tip" ${open?"":'style="opacity:.55"'}><span class="label">${unitName(u)} · ${esc(u.title)}</span><h3>${esc(u.tip.t)}</h3>${open?u.tip.b:'<p class="muted">Se débloque avec l\'unité.</p>'}</section>`;}).join("")}
+  <section class="card" id="transfer"><span class="label">Transférer ma progression</span>
+   <h3 style="font-size:1.1rem">Passer de Claude au site, ou l'inverse</h3>
+   <ol class="small" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">
+    <li>Sur la version que tu quittes, touche <b>Copier mon code</b>.</li>
+    <li>Sur l'autre version, colle le code ci-dessous et touche <b>Charger le code</b>.</li></ol>
+   <p class="small muted" style="margin:0">Rien n'est perdu : les deux progressions sont fusionnées et on garde le meilleur de chaque côté.</p>
+   <button class="btn" id="exportBtn">Copier mon code</button>
+   <textarea id="codeBox" class="search" rows="3" placeholder="Colle ici un code qui commence par EGO1:" autocomplete="off" autocapitalize="off" spellcheck="false" style="resize:vertical;font-size:.85rem"></textarea>
+   <button class="btn ghost" id="importBtn">Charger le code</button></section>
+  <section class="card"><span class="label">Réglages</span>
+   <label class="row" for="goal"><span class="sp">Objectif quotidien</span><select id="goal">${[[15,"Tranquille · 15 XP"],[30,"Régulier · 30 XP"],[50,"Sérieux · 50 XP"],[80,"Intensif · 80 XP"]].map(([v,l])=>`<option value="${v}" ${S.goal==v?"selected":""}>${l}</option>`).join("")}</select></label>
+   <p class="small muted" style="margin:0">${esc(syncMsg)}</p>
+   <button class="btn ghost" id="reset" style="${confirmReset?"border-color:var(--bad);color:var(--bad)":""}">${confirmReset?"Confirmer : tout effacer":"Réinitialiser ma progression"}</button></section>`;
+}
+function bindView(){
+  document.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startUnit(b.dataset.start));
+  document.querySelectorAll("[data-review]").forEach(b=>b.onclick=startReview);
+  document.querySelectorAll("[data-unit]").forEach(b=>b.onclick=()=>{const i=+b.dataset.unit;
+    if(!unitUnlocked(i)){toast("Vois la moitié des mots de « "+prevUnit(i).title+" » pour débloquer.");return;}startUnit(UNITS[i].id);});
+  const q=$("#q");if(q)q.oninput=()=>{query=q.value;const pos=q.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}};
+  document.querySelectorAll("[data-show]").forEach(b=>b.onclick=()=>{const [k,i]=b.dataset.show.split(":");showP=k==="m"?MSGS[+i]:jobView.flat[+i];render();});
+  document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(MSGS[+b.dataset.copy][0]));
+  const hp=$("#hideP");if(hp)hp.onclick=()=>{showP=null;render();};
+  const cp=$("#copyP");if(cp)cp.onclick=()=>copyText(showP[0]);
+  const ex=$("#exportBtn");if(ex)ex.onclick=()=>{const code=exportCode();const box=$("#codeBox");
+    const fallback=()=>{box.value=code;box.focus();box.select();toast("Code affiché et sélectionné : appuie dessus et choisis Copier.");};
+    try{navigator.clipboard.writeText(code).then(()=>toast("Code copié. Colle-le dans l'autre version."),fallback);}catch(e){fallback();}};
+  const im=$("#importBtn");if(im)im.onclick=()=>{const r=importCode($("#codeBox").value);if(r)toast(r);};
+  const g=$("#goal");if(g)g.onchange=()=>{S.goal=+g.value;save();render();};
+  const r=$("#reset");if(r)r.onclick=()=>{if(!confirmReset){confirmReset=true;render();return;}S=DEF();save();confirmReset=false;tab="home";render();toast("Progression réinitialisée");};
+}
+
+/* ---------------- Moteur de leçon ---------------- */
+let L=null;
+function qFor(key,box){const types=box>=3?["fr2en","listen","type","en2fr"]:box>=2?["fr2en","listen","type"]:["fr2en","listen","en2fr"];return {t:pick(types),key};}
+function startUnit(uid){
+  const u=UNITS.find(x=>x.id===uid);
+  const unseen=u.items.filter(it=>!seen(it.key));
+  const fresh=unseen.slice(0,3);
+  const old=shuffle(u.items.filter(it=>seen(it.key))).sort((a,b)=>S.cards[a.key].b-S.cards[b.key].b).slice(0,6-fresh.length);
+  let pool=old;
+  if(fresh.length+old.length<6){const prev=UNITS.slice(0,UNITS.indexOf(u)).flatMap(x=>x.items).filter(it=>seen(it.key));pool=old.concat(shuffle(prev).slice(0,6-fresh.length-old.length));}
+  const steps=[];
+  fresh.forEach(it=>{steps.push({t:"intro",key:it.key});steps.push({t:"en2fr",key:it.key});});
+  const round2=shuffle(fresh.concat(pool)).map(it=>qFor(it.key,seen(it.key)?S.cards[it.key].b:1));
+  steps.push(...round2);
+  const sents=shuffle(u.sent).slice(0,2).map(s=>({t:"build",s,unit:u}));
+  steps.push(...sents);
+  openLesson({kind:"unit",unit:u,steps,title:u.title});
+}
+function startReview(){
+  let keys=dueList().slice(0,10);
+  if(!keys.length)keys=shuffle(Object.keys(S.cards).filter(k=>BYKEY[k])).slice(0,8);
+  if(!keys.length){toast("Fais d'abord une leçon.");return;}
+  const steps=shuffle(keys).map(k=>qFor(k,S.cards[k].b));
+  const withSent=UNITS.filter(u=>unitSeen(u)>0);
+  if(withSent.length)steps.push({t:"build",s:pick(pick(withSent).sent),unit:pick(withSent)});
+  openLesson({kind:"review",steps,title:"Révision"});
+}
+function openLesson(o){L=Object.assign(o,{i:0,done:0,correct:0,wrong:0,results:{},state:"ask",sel:null,built:[],total:o.steps.length});document.body.style.overflow="hidden";render();autoAudio();}
+function step(){return L.steps[L.i];}
+function distractors(key,field,n=3){
+  const it=BYKEY[key];const same=UNITS.find(u=>u.id===it.unit).items.filter(x=>x.key!==key);
+  let c=shuffle(same).map(x=>x[field]);if(c.length<n)c=c.concat(shuffle(ALL.filter(x=>x.key!==key)).map(x=>x[field]));
+  return [...new Set(c.filter(v=>v!==it[field]))].slice(0,n);
+}
+function renderLesson(){
+  const s=step(),root=$("#root");
+  if(L.state==="end"){root.innerHTML=endView();bindEnd();return;}
+  if(!s.opts&&(s.t==="en2fr"||s.t==="fr2en"||s.t==="listen")){const f=s.t==="en2fr"?1:0;s.opts=shuffle([BYKEY[s.key][f],...distractors(s.key,f)]);}
+  if(s.t==="build"&&!s.tiles){const words=s.s[0].replace(/[?,.!]/g,"").split(" ");
+    const extra=shuffle(s.unit.sent.flatMap(x=>x[0].replace(/[?,.!]/g,"").split(" ")).filter(w=>!words.map(norm).includes(norm(w)))).slice(0,3);
+    s.tiles=shuffle([...words,...new Set(extra)]).map((w,i)=>({w,i}));}
+  const pct=L.done/L.total*100;
+  root.innerHTML=`<div class="sheet" role="dialog" aria-label="Leçon"><div class="sheet-in">
+   <div class="lhead"><button class="close" id="quit" aria-label="Quitter la leçon">${IC.x}</button><div class="bar"><i style="width:${pct}%"></i></div></div>
+   <div class="stage" id="stage">${stageHTML(s)}</div>
+   <div class="lfoot" id="foot">${footHTML(s)}</div></div></div>`;
+  bindLesson(s);
+}
+function stageHTML(s){
+  const it=BYKEY[s.key];
+  if(s.t==="intro")return `<h2 class="q-title">Nouveau mot</h2><div class="card intro"><span class="new">Nouveau</span>
+    ${audioBtn(it[0],"big")}<div class="w">${esc(it[0])}</div><div class="t">${esc(it[1])}</div><div class="pr">≈ ${esc(it[2])}</div>
+    <button class="slow" data-say="${esc(it[0])}" data-slow="1">Écouter lentement</button></div>
+    <p class="muted small" style="text-align:center;margin:0">Écoute, puis répète-le à voix haute.</p>`;
+  const optsHTML=s.opts?`<div class="opts">${s.opts.map((o,i)=>{let cls="";if(L.state!=="ask"){const right=s.t==="en2fr"?it[1]:it[0];if(o===right)cls="right";else if(i===L.sel)cls="wrong";}
+    return `<button class="opt ${cls}" data-opt="${i}" aria-pressed="${L.sel===i}" ${L.state!=="ask"?"disabled":""}>${esc(o)}</button>`;}).join("")}</div>`:"";
+  if(s.t==="en2fr")return `<h2 class="q-title">Que veut dire ce mot ?</h2><div class="prompt">${audioBtn(it[0])}<div class="big">${esc(it[0])}</div></div>${optsHTML}`;
+  if(s.t==="fr2en")return `<h2 class="q-title">Comment dit-on en anglais ?</h2><div class="prompt"><div class="big">${esc(it[1])}</div></div>${optsHTML}`;
+  if(s.t==="listen")return `<h2 class="q-title">Qu'entends-tu ?</h2><div style="display:flex;flex-direction:column;align-items:center;gap:4px">${audioBtn(it[0],"big")}<button class="slow" data-say="${esc(it[0])}" data-slow="1">Écouter lentement</button></div>${optsHTML}`;
+  if(s.t==="type")return `<h2 class="q-title">Écris en anglais</h2><div class="prompt"><div class="big">${esc(it[1])}</div></div>
+    <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Ta réponse en anglais" value="${esc(L.typed||"")}" ${L.state!=="ask"?"disabled":""} enterkeyhint="done">`;
+  if(s.t==="build")return `<h2 class="q-title">Traduis cette phrase</h2><div class="prompt">${L.state!=="ask"?audioBtn(s.s[0]):""}<div class="big" style="font-size:1.25rem">${esc(s.s[1])}</div></div>
+    <div class="answer" aria-label="Ta phrase">${L.built.map((ti,j)=>`<button class="tile" data-un="${j}" ${L.state!=="ask"?"disabled":""}>${esc(s.tiles[ti].w)}</button>`).join("")}</div>
+    <div class="bank">${s.tiles.map((t,i)=>`<button class="tile ${L.built.includes(i)?"used":""}" data-tile="${i}" ${L.state!=="ask"?"disabled":""}>${esc(t.w)}</button>`).join("")}</div>`;
+  return "";
+}
+function canCheck(s){if(s.t==="intro")return true;if(s.opts)return L.sel!==null;if(s.t==="type")return (L.typed||"").trim().length>0;if(s.t==="build")return L.built.length>0;return false;}
+function footHTML(s){
+  if(L.state==="ask")return `<button class="btn" id="go" ${canCheck(s)?"":"disabled"}>${s.t==="intro"?"J'ai compris":"Vérifier"}</button>`;
+  const ok=L.state==="ok";const ans=answerText(s);
+  return `<div class="fb ${ok?"ok":"bad"}" role="status">${ok?(L.almost?"Presque parfait !":pick(["Excellent !","Bravo !","Parfait !","Bien joué !"])):"Pas tout à fait."}${(!ok||L.almost)?`<span>Bonne réponse : <b>${esc(ans)}</b></span>`:""}</div>
+   <button class="btn ${ok?"ok":"bad"}" id="go">Continuer</button>`;
+}
+function answerText(s){const it=BYKEY[s.key];if(s.t==="build")return s.s[0];if(s.t==="en2fr")return it[1];return it[0];}
+function bindLesson(s){
+  $("#quit").onclick=()=>{L=null;document.body.style.overflow="";if(window.speechSynthesis)speechSynthesis.cancel();render();};
+  document.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{L.sel=+b.dataset.opt;if(s.t!=="en2fr")say(s.opts[L.sel]);renderLesson();});
+  document.querySelectorAll("[data-tile]").forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;if(!L.built.includes(i)){L.built.push(i);say(s.tiles[i].w);renderLesson();}});
+  document.querySelectorAll("[data-un]").forEach(b=>b.onclick=()=>{L.built.splice(+b.dataset.un,1);renderLesson();});
+  const ti=$("#typein");if(ti){ti.oninput=()=>{L.typed=ti.value;$("#go").disabled=!canCheck(s);};ti.onkeydown=e=>{if(e.key==="Enter"&&canCheck(s)){e.preventDefault();$("#go").click();}};if(L.state==="ask")setTimeout(()=>ti.focus(),50);}
+  $("#go").onclick=()=>{if(L.state==="ask")check(s);else advance();};
+}
+function check(s){
+  if(s.t==="intro"){L.done++;nextStep();return;}
+  const it=BYKEY[s.key];let ok=false;L.almost=false;
+  if(s.opts){const right=s.t==="en2fr"?it[1]:it[0];ok=s.opts[L.sel]===right;}
+  else if(s.t==="type"){const a=norm(L.typed),b=norm(it[0]);ok=a===b;if(!ok&&b.length>4&&lev(a,b)<=1){ok=true;L.almost=true;}}
+  else if(s.t==="build"){ok=norm(L.built.map(i=>s.tiles[i].w).join(" "))===norm(s.s[0]);}
+  L.state=ok?"ok":"bad";
+  if(s.key){if(L.results[s.key]===undefined)L.results[s.key]=true;if(!ok)L.results[s.key]=false;}
+  if(ok){L.correct++;L.done++;}else{L.wrong++;if(!s.retry){const c=Object.assign({},s,{retry:true,opts:null,tiles:null});L.steps.push(c);}else L.done++;}
+  say(s.t==="build"?s.s[0]:it[0]);
+  renderLesson();
+}
+function advance(){nextStep();}
+function nextStep(){
+  L.i++;L.sel=null;L.typed="";L.built=[];L.state="ask";L.almost=false;
+  if(L.i>=L.steps.length){finish();return;}
+  renderLesson();autoAudio();
+}
+function autoAudio(){const s=step();if(!s)return;if(s.t==="intro"||s.t==="listen"||s.t==="en2fr")say(BYKEY[s.key][0]);}
+function finish(){
+  const now=Date.now();
+  Object.entries(L.results).forEach(([k,ok])=>{const c=S.cards[k];let b=c?(ok?Math.min(5,c.b+1):1):(ok?2:1);S.cards[k]={b,d:now+DAYS[b]*864e5};});
+  L.steps.forEach(st=>{if(st.t==="intro"&&!S.cards[st.key])S.cards[st.key]={b:1,d:now+DAYS[1]*864e5};});
+  const gained=L.correct*2+(L.kind==="unit"?10:5)+(L.wrong===0?5:0);
+  L.gained=gained;S.xp+=gained;const dk=dayKey();S.days[dk]=(S.days[dk]||0)+gained;
+  if(L.kind==="unit"){const u=S.units[L.unit.id]||{lessons:0};u.lessons++;S.units[L.unit.id]=u;}
+  save();L.state="end";L.done=L.total;renderLesson();
+}
+function endView(){
+  const acc=Math.round(L.correct/Math.max(1,L.correct+L.wrong)*100);
+  const g=todayXP()>=S.goal;
+  return `<div class="sheet"><div class="sheet-in"><div class="stage end">
+   <span class="label">${L.kind==="unit"?"Leçon terminée":"Révision terminée"}</span>
+   <div class="xp">+${L.gained} XP</div>
+   <h2 style="font-size:1.6rem">${acc>=90?"Superbe travail !":acc>=70?"Très bien !":"Bon effort, continue !"}</h2>
+   <div class="stats"><div class="stat"><b>${acc}%</b><small>Précision</small></div><div class="stat"><b>${streak()}</b><small>Jours d'affilée</small></div><div class="stat"><b>${Math.min(todayXP(),S.goal)}/${S.goal}</b><small>Objectif</small></div></div>
+   <p class="muted" style="margin:0">${g?"Objectif du jour atteint. See you tomorrow!":"Encore une leçon pour atteindre ton objectif ?"}</p>
+  </div><div class="lfoot"><button class="btn" id="again">${L.kind==="unit"?"Leçon suivante":"Encore une révision"}</button><button class="btn ghost" id="home">Retour au parcours</button></div></div></div>`;
+}
+function bindEnd(){
+  $("#home").onclick=()=>{L=null;document.body.style.overflow="";tab="home";render();scrollTo(0,0);};
+  $("#again").onclick=()=>{const k=L.kind;L=null;if(k==="unit"){startUnit(UNITS[nextUnitIndex()].id);}else startReview();};
+}
+
+/* ---------------- Sauvegarde sur le compte ---------------- */
+(async()=>{
+  if(!(window.claude&&window.claude.use))return;
+  try{
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    const ref=db.collection("data/users/"+id).doc("progress");
+    const snap=await Promise.race([ref.get(),new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),10000))]);
+    remoteRef=ref;
+    if(snap.exists){const r=normalizeState(snap.data());if((r.updated||0)>(S.updated||0)){S=r;persistLocal();if(!L)render();}else if(S.updated)queueRemote();}
+    else if(S.updated)queueRemote();
+    syncMsg="Progression sauvegardée sur ton compte : retrouve-la sur tous tes appareils.";
+    if(!L&&tab==="guide")render();
+  }catch(e){}
+})();
+
+render();
+</script>
+
+</body>
+</html>
