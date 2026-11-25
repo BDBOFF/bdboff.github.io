@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="theme-color" content="#000000">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Carnet de courses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Courses">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Brand: black / white / red from the logo. Layout: one-column phone logbook, big counters on top, bottom tab bar, bottom sheet for entry */
+:root{
+  --bg:#F2F2F4; --surface:#FFFFFF; --ink:#0E0F12; --muted:#5F626B; --line:#DDDEE3;
+  --accent:#111216; --accent-ink:#FFFFFF; --accent-soft:#EAEBEE;
+  --mark:#E0193F; --mark-soft:#FCE3E9; --warn-soft:#FBEFD2;
+  --ok:#14834F; --ok-soft:#DAF1E5; --bad:#B42318; --bad-soft:#F9E1DE;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",-apple-system,"Segoe UI",system-ui,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#09090B; --surface:#16171A; --ink:#EDEDF0; --muted:#9A9CA5; --line:#2A2B30;
+  --accent:#F1F1F3; --accent-ink:#0B0B0D; --accent-soft:#26272C;
+  --mark:#FF4466; --mark-soft:#3D1620; --warn-soft:#3A2F12;
+  --ok:#4CC88A; --ok-soft:#123826; --bad:#FF8A7A; --bad-soft:#41201C; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#09090B; --surface:#16171A; --ink:#EDEDF0; --muted:#9A9CA5; --line:#2A2B30;
+  --accent:#F1F1F3; --accent-ink:#0B0B0D; --accent-soft:#26272C;
+  --mark:#FF4466; --mark-soft:#3D1620; --warn-soft:#3A2F12;
+  --ok:#4CC88A; --ok-soft:#123826; --bad:#FF8A7A; --bad-soft:#41201C; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,textarea,select{font:inherit;color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--f-display);font-variant-numeric:tabular-nums}
+#app{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px calc(96px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.brand{white-space:nowrap;flex:none;font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.brand img{width:34px;height:34px;border-radius:9px;display:block;flex:none;box-shadow:0 0 0 1px var(--line)}
+.sync{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sync b{flex:none}
+.sync b{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync.on b{background:var(--ok)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.small{font-size:14px;color:var(--muted)}
+h2{font-family:var(--f-display);font-weight:700;font-size:26px;margin:0;line-height:1.1;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0}
+/* date / month nav */
+.nav{display:flex;align-items:center;gap:8px}
+.nav .t{flex:1;min-width:0;text-align:center}
+.nav .t h2{font-size:24px}
+.nav .t h2::first-letter{text-transform:uppercase}
+.arrow{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:22px;flex:none}
+.linkbtn{color:var(--mark);font-weight:600;font-size:14px;padding:4px 6px}
+/* counters */
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.counter{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 12px 10px;min-width:0}
+.counter .v{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.counter .k{font-size:13px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.counter.main{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.counter.main .k{color:var(--bg);opacity:.75}
+.counter.main .v{color:var(--mark)}
+/* quick chips */
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.qchip{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;min-width:0;display:flex;flex-direction:column;gap:1px}
+.qchip:active{background:var(--accent-soft)}
+.qchip .r{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qchip .c{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:12px;font-weight:700;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45}
+.row2{display:flex;gap:10px;flex-wrap:wrap}
+.row2>*{flex:1}
+/* course rows */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.crow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;text-align:left;border-top:1px solid var(--line)}
+.crow:first-child{border-top:0}
+.crow:active{background:var(--accent-soft)}
+.crow .no{font-family:var(--f-display);font-weight:600;font-size:18px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
+.crow .mid{flex:1;min-width:0}
+.crow .rt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .cl{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .pr{font-family:var(--f-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;background:var(--bg);border-top:1px solid var(--line);font-weight:700;font-size:14px}
+.dayhead:first-child{border-top:0}
+.dayhead span:first-child::first-letter{text-transform:uppercase}
+.dayhead .n{color:var(--muted);font-weight:600}
+.weekhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 2px 8px}
+.weekhead .w{font-family:var(--f-display);font-weight:600;font-size:18px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;background:var(--mark-soft);color:var(--ink);font-weight:700;font-size:14px;white-space:nowrap}
+.empty{padding:22px 16px;text-align:center;color:var(--muted)}
+.search{width:100%;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 14px}
+/* stats summary */
+.sum{display:flex;flex-wrap:wrap;gap:8px 18px}
+.sum div{display:flex;flex-direction:column}
+.sum .v{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;font-variant-numeric:tabular-nums}
+.sum .k{font-size:13px;color:var(--muted)}
+.sum.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+/* compare */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:14px;font-weight:600}
+.inp{width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px;font-size:17px}
+.inp.big{font-family:var(--f-display);font-size:26px;font-weight:600}
+textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;resize:vertical}
+.verdict{border-radius:12px;padding:12px 14px;font-weight:600}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.warn{background:var(--warn-soft)}
+.verdict.bad{background:var(--bad-soft);color:var(--bad)}
+.verdict.neutral{background:var(--bg);color:var(--muted);font-weight:500}
+/* bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,38%) 1fr auto;align-items:center;gap:10px;font-size:15px}
+.grp .n{font-weight:700}
+.bar.grp{grid-template-columns:minmax(0,60%) 1fr auto}
+.bar .n small{font-weight:500;color:var(--muted)}
+.cbtn{width:100%;text-align:left;padding:4px 0;border-radius:8px}
+.cbtn:active{background:var(--accent-soft)}
+.bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .track{height:12px;border-radius:6px;background:var(--bg);overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:6px}
+.bar .v{font-family:var(--f-display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;min-width:34px}
+.year{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:150px}
+.ycol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:0;padding:0}
+.ycol .yv{white-space:nowrap;font-family:var(--f-display);font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.ycol .yb{width:100%;max-width:26px;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.ycol.cur .yb{background:var(--mark)}
+.ycol .ym{font-size:11px;color:var(--muted);text-transform:uppercase}
+/* suivi */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);border-radius:12px;padding:4px}
+.seg button{min-height:40px;border-radius:9px;font-weight:600;font-size:15px;color:var(--muted)}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(10,30,50,.15)}
+.seg button.s2[aria-checked="true"]{background:var(--ok-soft);color:var(--ok)}
+.seg button.s1[aria-checked="true"]{background:var(--accent-soft);color:var(--accent)}
+.mrow{display:flex;flex-direction:column;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.mrow:active{background:var(--accent-soft)}
+.mh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mt{font-family:var(--f-display);font-weight:700;font-size:21px}
+.st{font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--mark-soft)}
+.st.s1{background:var(--accent-soft);color:var(--accent)}
+.st.s2{background:var(--ok-soft);color:var(--ok)}
+.mg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.mg span{display:flex;flex-direction:column;min-width:0}
+.mg b{font-size:20px;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mg i{font-style:normal;font-size:12px;color:var(--muted)}
+@media (max-width:440px){.mg{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}}
+.mn{font-size:14px;color:var(--muted);white-space:pre-wrap}
+.mf{display:flex;flex-wrap:wrap;gap:6px}
+.mf:empty{display:none}
+.tag{font-size:13px;font-weight:600;padding:3px 9px;border-radius:8px;background:var(--bg);color:var(--muted)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--ink)}.tag.bad{background:var(--bad-soft);color:var(--bad)}
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabs .in{display:flex;width:100%;max-width:560px}
+.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11.5px;font-weight:600;color:var(--muted);border-radius:10px}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--mark)}
+.fab{position:fixed;z-index:21;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(78px + env(safe-area-inset-bottom,0px));height:56px;padding:0 20px 0 16px;border-radius:28px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.fab svg{width:24px;height:24px}
+@media (min-width:600px){.fab{right:calc(50% - 262px)}}
+/* sheet */
+.sheetwrap{position:fixed;inset:0;z-index:40;background:rgba(5,15,25,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.x{width:40px;height:40px;border-radius:50%;background:var(--bg);font-size:20px;display:grid;place-items:center}
+.sugg{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.sugg::-webkit-scrollbar{display:none}
+.sg{flex:none;padding:7px 12px;border-radius:99px;background:var(--accent-soft);font-weight:600;font-size:15px;display:inline-flex;align-items:baseline;gap:6px}
+.sg small{font-family:var(--f-display);font-weight:500;font-size:13px;color:var(--muted)}
+.sgl{font-size:12px;color:var(--muted);margin:-6px 0 -8px}
+.sgl span{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.trip{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end}
+.swap{width:44px;height:48px;border-radius:12px;background:var(--bg);font-size:20px}
+.confirm{display:flex;flex-direction:column;gap:10px;background:var(--bad-soft);border-radius:12px;padding:12px}
+/* toast */
+.toast{position:fixed;z-index:50;left:50%;transform:translateX(-50%);width:max-content;bottom:calc(146px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:600}
+.toast button{color:var(--mark);font-weight:700;padding:6px 10px}
+.prev{max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:12px}
+.prev .crow{padding:8px 12px}
+.warnbox{background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:14px}
+.warnbox code{font-size:13px}
+.codebox{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:90px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:10px;word-break:break-all}
+.msg{font-size:14px;font-weight:600}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<div id="app"></div>
+<nav class="tabs" aria-label="Sections"><div class="in" id="tabs"></div></nav>
+<div id="fabslot"></div>
+<div id="sheetslot"></div>
+<div id="toastslot"></div>
+
+<script>
+/* ============ Utilitaires ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseD=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+const mkey=s=>s.slice(0,7);
+const today=()=>ymd(new Date());
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return ymd(d);};
+const weekStart=s=>{const d=parseD(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return ymd(d);};
+const MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const MOIS3=["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+const capf=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+const monthLabel=k=>{const [y,m]=k.split("-");return capf(MOIS[+m-1])+" "+y;};
+const addMonths=(k,n)=>{let [y,m]=k.split("-").map(Number);m+=n;while(m>12){m-=12;y++;}while(m<1){m+=12;y--;}return y+"-"+pad(m);};
+const fmtDay=s=>parseD(s).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+const fmtShort=s=>parseD(s).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+const fmtDM=s=>{const d=parseD(s);return d.getDate()+" "+MOIS3[d.getMonth()]+".";};
+const euro=n=>(+n).toLocaleString("fr-FR",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+" €";
+const plural=(n,w)=>n+" "+w+(n>1?"s":"");
+const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\bst\./g,"st").replace(/[-'’.]/g," ").replace(/\bsainte\b/g,"ste").replace(/\bsaint\b/g,"st").replace(/\s+/g," ").trim();
+const titleWords=s=>String(s).trim().replace(/\s+/g," ").split(" ").map(w=>w&&w===w.toLowerCase()?capf(w):w).join(" ");
+const numOrNull=v=>{if(v===null||v===undefined||v==="")return null;const n=+String(v).replace(",",".");return isFinite(n)&&n>=0?Math.round(n*100)/100:null;};
+const parseMoney=v=>numOrNull(String(v||"").replace(/[€\s]/g,""));
+function stable(o){if(Array.isArray(o))return "["+o.map(stable).join(",")+"]";if(o&&typeof o==="object")return "{"+Object.keys(o).sort().map(k=>JSON.stringify(k)+":"+stable(o[k])).join(",")+"}";return JSON.stringify(o);}
+
+/* ============ Données ============ */
+const LS="carnet-courses.v1";
+const blankMonth=()=>({c:{},x:{},dir:null,fac:null,st:0,mn:"",iu:0,u:0});
+function okCourse(c,k){return c&&typeof c==="object"&&typeof c.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(c.d)&&mkey(c.d)===k;}
+function cleanCourse(c){const s=v=>String(v??"").slice(0,80);return{d:c.d,f:s(c.f),t:s(c.t),c:s(c.c),p:numOrNull(c.p),n:String(c.n??"").slice(0,200),k:+c.k||0,u:+c.u||0};}
+function mergeMonth(a,b,k){
+  a=a&&typeof a==="object"?a:{};b=b&&typeof b==="object"?b:{};
+  const r={c:{},x:{},dir:null,fac:null,st:0,mn:"",iu:0,u:Math.max(+a.u||0,+b.u||0)};
+  for(const s of [a.x,b.x])if(s&&typeof s==="object")for(const id in s){const v=+s[id]||0;if(v>(r.x[id]||0))r.x[id]=v;}
+  for(const s of [a.c,b.c])if(s&&typeof s==="object")for(const id in s){const c=s[id];if(!okCourse(c,k))continue;const cur=r.c[id];if(!cur||(+c.u||0)>cur.u)r.c[id]=cleanCourse(c);}
+  for(const id in r.c)if(r.x[id]&&r.x[id]>=r.c[id].u)delete r.c[id];
+  const info=(+b.iu||0)>(+a.iu||0)?b:a;r.dir=numOrNull(info.dir);r.fac=numOrNull(info.fac);r.st=[0,1,2].includes(+info.st)?+info.st:0;r.mn=String(info.mn??"").slice(0,300);r.iu=+info.iu||0;
+  return r;
+}
+function load(){try{const r=JSON.parse(localStorage.getItem(LS)||"null");if(r&&r.m){const m={};for(const k in r.m)if(/^\d{4}-\d{2}$/.test(k))m[k]=mergeMonth(blankMonth(),r.m[k],k);return{v:1,m};}}catch(e){}return{v:1,m:{}};}
+let S=load();
+const M=k=>S.m[k]||(S.m[k]=blankMonth());
+const dirty=new Set();
+function persist(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function touch(k){M(k).u=Date.now();dirty.add(k);persist();queueRemote();}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+function addCourse(o){const id=uid(),now=Date.now(),k=mkey(o.d);M(k).c[id]={d:o.d,f:o.f,t:o.t,c:o.c,p:o.p??null,n:o.n||"",k:now,u:now};delete M(k).x[id];touch(k);return{id,k};}
+function updateCourse(id,oldK,o){
+  const old=M(oldK).c[id];if(!old)return;const now=Date.now(),k=mkey(o.d);
+  const c=Object.assign({},old,o,{u:now});if(o.d!==old.d)c.k=now;
+  if(k!==oldK){delete M(oldK).c[id];M(oldK).x[id]=now;touch(oldK);delete M(k).x[id];}
+  M(k).c[id]=c;touch(k);
+}
+function deleteCourse(id,k){const c=M(k).c[id];if(!c)return null;delete M(k).c[id];M(k).x[id]=Date.now();touch(k);return c;}
+function restoreCourse(id,k,c){const u=Math.max(Date.now(),(M(k).x[id]||0)+1);delete M(k).x[id];M(k).c[id]=Object.assign({},c,{u});touch(k);}
+
+function monthList(k){const m=S.m[k];if(!m)return[];return Object.entries(m.c).map(([id,c])=>Object.assign({},c,{id,mk:k})).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.k-b.k).map((c,i)=>(c.no=i+1,c));}
+const allList=()=>Object.keys(S.m).sort().flatMap(monthList);
+const countMonth=k=>S.m[k]?Object.keys(S.m[k].c).length:0;
+const countAll=()=>Object.keys(S.m).reduce((n,k)=>n+countMonth(k),0);
+const route=c=>(c.f||"?")+" → "+(c.t||"?");
+
+function freq(fields){const m=new Map();allList().forEach(c=>fields.forEach(f=>{const v=c[f];if(!v)return;const k=norm(v);const e=m.get(k)||{v,n:0};e.n++;m.set(k,e);}));return [...m.values()].sort((a,b)=>b.n-a.n).map(e=>e.v);}
+function canon(v,fields){const n=norm(v);if(!n)return "";for(const c of allList())for(const f of fields)if(norm(c[f])===n)return c[f];return capf(String(v).trim().replace(/\s+/g," "));}
+function renameClientAll(key,name){const now=Date.now();let n=0;for(const k in S.m){let ch=false;for(const id in S.m[k].c){const c=S.m[k].c[id];if(norm(c.c)===key&&c.c!==name){c.c=name;c.u=now;n++;ch=true;}}if(ch)touch(k);}return n;}
+function combos(){const m=new Map();allList().forEach(c=>{const k=norm(c.f)+"|"+norm(c.t)+"|"+norm(c.c);const e=m.get(k)||{f:c.f,t:c.t,c:c.c,n:0};e.n++;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n).slice(0,8);}
+function lastPrice(f,t,c){let best=null,bk=-1;allList().forEach(x=>{if(x.p!=null&&norm(x.f)===norm(f)&&norm(x.t)===norm(t)&&norm(x.c)===norm(c)&&x.k>bk){best=x.p;bk=x.k;}});return best;}
+
+/* ============ Sauvegarde sur le compte ============ */
+let col=null,writeChain=Promise.resolve(),remoteTimer=null,sync="local";
+function queueRemote(){if(!col)return;clearTimeout(remoteTimer);remoteTimer=setTimeout(flush,900);}
+function flush(){const keys=[...dirty];dirty.clear();keys.forEach(k=>{const snap=JSON.parse(JSON.stringify(S.m[k]||blankMonth()));writeChain=writeChain.then(()=>col.doc("m"+k).set(snap)).then(()=>{if(sync==="error"){sync="account";renderTop();}}).catch(()=>{dirty.add(k);sync="error";renderTop();});});}
+(async()=>{
+  if(!(window.claude&&window.claude.use))return;
+  try{
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    const c=db.collection("data/users/"+id);
+    let first=true;
+    const timer=setTimeout(()=>{if(first){sync="error";renderTop();}},10000);
+    c.onSnapshot(snap=>{
+      clearTimeout(timer);col=c;let changed=false;const seen=new Set();
+      snap.docs.forEach(d=>{
+        if(!/^m\d{4}-\d{2}$/.test(d.id))return;const k=d.id.slice(1);seen.add(k);
+        const remote=mergeMonth(blankMonth(),d.data(),k);
+        const merged=mergeMonth(S.m[k]||blankMonth(),remote,k);
+        const ms=stable(merged);
+        if(ms!==stable(mergeMonth(blankMonth(),S.m[k]||blankMonth(),k))){S.m[k]=merged;changed=true;}
+        if(ms!==stable(remote))dirty.add(k);
+      });
+      if(first){for(const k in S.m)if(!seen.has(k)&&(countMonth(k)||Object.keys(S.m[k].x).length||S.m[k].iu))dirty.add(k);first=false;sync="account";changed=true;}
+      if(changed){persist();render();}
+      if(dirty.size)queueRemote();
+    },()=>{sync="error";renderTop();});
+  }catch(e){}
+})();
+
+/* ============ Code de transfert ============ */
+function b64(u8){let s="";for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+function unb64(s){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+async function exportCode(){
+  const bytes=new TextEncoder().encode(JSON.stringify({v:1,m:S.m}));
+  if(window.CompressionStream){try{const st=new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));return "CRS2:"+b64(new Uint8Array(await new Response(st).arrayBuffer()));}catch(e){}}
+  return "CRS1:"+b64(bytes);
+}
+async function importCode(txt){
+  const m=String(txt||"").replace(/\s+/g,"").match(/CRS([12]):([A-Za-z0-9+/=]+)/);
+  if(!m)return [false,"Code introuvable. Il doit commencer par CRS — copie-le en entier."];
+  let o;
+  try{let bytes=unb64(m[2]);
+    if(m[1]==="2"){if(!window.DecompressionStream)return [false,"Ce téléphone est trop ancien pour lire ce code. Mets iOS à jour."];
+      const st=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));bytes=new Uint8Array(await new Response(st).arrayBuffer());}
+    o=JSON.parse(new TextDecoder().decode(bytes));
+  }catch(e){return [false,"Ce code est abîmé. Recopie-le en entier depuis l'autre version."];}
+  if(!o||typeof o.m!=="object")return [false,"Ce code ne contient pas de courses."];
+  const before=countAll();
+  for(const k in o.m){if(!/^\d{4}-\d{2}$/.test(k)||!o.m[k]||typeof o.m[k]!=="object")continue;
+    const inc=Object.assign({},o.m[k]),ic=Object.assign({},inc.c||{}),loc=S.m[k]||blankMonth();
+    const pool=new Map();for(const id in loc.c){if(ic[id])continue;const kk=ckey(loc.c[id]);pool.set(kk,(pool.get(kk)||0)+1);}
+    for(const id in ic){const c=ic[id];if(loc.c[id]||!okCourse(c,k))continue;const kk=ckey(c);const n=pool.get(kk)||0;if(n>0){pool.set(kk,n-1);delete ic[id];}}
+    inc.c=ic;S.m[k]=mergeMonth(loc,inc,k);dirty.add(k);}
+  persist();queueRemote();
+  const add=countAll()-before;
+  return [true,"Données chargées : "+(add>0?plural(add,"course")+" ajoutée"+(add>1?"s":""):"rien de nouveau")+". Total : "+plural(countAll(),"course")+"."];
+}
+
+/* ============ Communes 06 + 83 (+ Monaco), triées par population ============ */
+const CP_RAW="Nice|06000,06100,06200,06300;Toulon|83000,83100,83200;Antibes|06160,06600;Monaco|98000;Cannes|06150,06400;La Seyne-sur-Mer|83500;Fréjus|83370,83600;Hyères|83400;Cagnes-sur-Mer|06800;Grasse|06130,06520;Le Cannet|06110;Draguignan|83300;Saint-Raphaël|83530,83700;Six-Fours-les-Plages|83140;Saint-Laurent-du-Var|06700;Menton|06500;Vallauris|06220;La Garde|83130;La Valette-du-Var|83160;Mandelieu-la-Napoule|06210;Vence|06140;Mougins|06250;La Crau|83260;Sanary-sur-Mer|83110;Saint-Maximin-la-Sainte-Baume|83470;Brignoles|83170;Villeneuve-Loubet|06270;Roquebrune-sur-Argens|83380,83520;Ollioules|83190;Sainte-Maxime|83120;Carros|06510;Cuers|83390;Vidauban|83550;Solliès-Pont|83210;Cogolin|83310;Roquebrune-Cap-Martin|06190;Valbonne|06560;Beausoleil|06240;Saint-Cyr-sur-Mer|83270;Le Luc|83340;Mouans-Sartoux|06370;Le Pradet|83220;La Trinité|06340;La Londe-les-Maures|83250;Biot|06410;Le Beausset|83330;Le Muy|83490;La Farlède|83210;Lorgues|83510;Carqueiranne|83320;Puget-sur-Argens|83480;Bormes-les-Mimosas|83230;Peymeinade|06530;Bandol|83150;Pégomas|06580;La Colle-sur-Loup|06480;Cavalaire-sur-Mer|83240;Les Arcs|83460;Contes|06390;Roquefort-les-Pins|06330;La Gaude|06610;Montauroux|83440;Trans-en-Provence|83720;Le Lavandou|83980;Solliès-Toucas|83210;Fayence|83440;Pierrefeu-du-Var|83390;Le Castellet|83330;Saint-Mandrier-sur-Mer|83430;Saint-André-de-la-Roche|06730;Saint-Zacharie|83640;Garéoult|83136;La Cadière-d'Azur|83740;La Roquette-sur-Siagne|06550;Rocbaron|83136;Pourrières|83910;Drap|06340;Levens|06670;Nans-les-Pins|83860;Tourves|83170;Le Cannet-des-Maures|83340;Villefranche-sur-Mer|06230;Pignans|83790;Flayosc|83780;Tourrette-Levens|06690;Puget-Ville|83390;Grimaud|83310;Gonfaron|83590;Cap-d'Ail|06320;Vinon-sur-Verdon|83560;Saint-Jeannet|06640;Carnoules|83660;Gattières|06510;Le Val|83143;Rians|83560;Le Rouret|06650;Tourrettes-sur-Loup|06140;Le Revest-les-Eaux|83200;Saint-Cézaire-sur-Siagne|06530;Salernes|83690;Beaulieu-sur-Mer|06310;La Croix-Valmer|83420;Callian|83440;Châteauneuf-Grasse|06740;Sospel|06380;Flassans-sur-Issole|83340;Saint-Vallier-de-Thiey|06460;Saint-Tropez|83990;Carcès|83570;Saint-Martin-du-Var|06670;Colomars|06670;Auribeau-sur-Siagne|06810;Forcalqueiret|83136;Le Tignet|06530;Saint-Paul-de-Vence|06570;Bagnols-en-Forêt|83600;Signes|83870;Besse-sur-Issole|83890;Le Plan-de-la-Tour|83120;La Motte|83920;La Turbie|06320;Barjols|83670;Néoules|83136;Le Bar-sur-Loup|06620;Tourrettes|83440;Seillans|83440;Seillons-Source-d'Argens|83470;La Roquebrussanne|83136;Les Adrets-de-l'Estérel|83600;Figanières|83830;Gassin|83580;Bras|83149;Le Thoronet|83340;L'Escarène|06440;Opio|06650;Plan-d'Aups-Sainte-Baume|83640;Solliès-Ville|83210;Saint-Julien|83560;Évenos|83330;Régusse|83630;Breil-sur-Roya|06540;Belgentier|83210;Aspremont|06790;Méounes-lès-Montrieux|83136;Cotignac|83570;Aups|83630;Falicon|06950;Sainte-Anastasie-sur-Issole|83136;Èze|06360;Callas|83830;Peille|06440;Ginasservis|83560;Cabasse|83340;Taradeau|83460;Camps-la-Source|83170;Ramatuelle|83350;Collobrières|83610;La Garde-Freinet|83680;Roquebillière|06450;Puget-Théniers|06260;Tende|06430;Tanneron|83440;Saint-Paul-en-Forêt|83440;Montferrat|83131;Rougiers|83170;Blausasc|06440;La Verdière|83560;Castagniers|06670;La Celle|83170;Gilette|06830;Gorbio|06500;Pourcieux|83470;La Môle|83310;Saint-Jean-Cap-Ferrat|06230;Villecroze|83690;Tavernes|83670;Théoule-sur-Mer|06590;Brue-Auriac|83119;Montfort-sur-Argens|83570;Cabris|06530;Le Broc|06510;Bargemon|83830;Peillon|06440;Saint-Blaise|06670;Sainte-Agnès|06500;Saint-Martin-Vésubie|06450;Berre-les-Alpes|06390;Saint-Étienne-de-Tinée|06660;Cantaron|06340;Spéracèdes|06530;Lucéram|06440;Lantosque|06450;Varages|83670;Entrecasteaux|83570;Péone|06470;Châteauneuf-Villevieille|06390;Castellar|06500;Bendejun|06390;Vins-sur-Caramy|83170;La Roquette-sur-Var|06670;Ampus|83111;Mons|83440;Mazaugues|83136;Correns|83570;Saint-Antonin-du-Var|83510;Valdeblore|06420;Coaraze|06390;Utelle|06450;Sillans-la-Cascade|83690;Pontevès|83670;Villars-sur-Var|06710;La Brigue|06430;Touët-sur-Var|06710;Bonson|06830;Claviers|83830;Clans|06420;Andon|06750;La Bollène-Vésubie|06450;Isola|06420;Rayol-Canadel-sur-Mer|83820;Ollières|83470;Gréolières|06620;Les Mayons|83340;Escragnolles|06460;Belvédère|06450;Montmeyan|83670;Guillaumes|06470;Tourtour|83690;Coursegoules|06140;Bouyon|06510;Roquestéron|06910;Séranon|06750;La Tour|06420;Valderoure|06750;Fox-Amphoux|83670;Beuil|06470;Châteaudouble|83300;Caille|06750;Saorge|06540;Castillon|06500;Cipières|06620;Esparron-de-Pallières|83560;Gourdon|06620;Toudon|06830;Comps-sur-Artuby|83840;Pierrefeu|06910;Caussols|06460;Malaussène|06710;Artignosc-sur-Verdon|83630;Bauduen|83630;Fontan|06540;Moissac-Bellevue|83630;Touët-de-l'Escarène|06440;Saint-Sauveur-sur-Tinée|06420;Saint-Martin-de-Pallières|83560;Artigues|83560;Aiguines|83630;Moulinet|06380;La Roque-Esclapon|83840;Bézaudun-les-Alpes|06510;La Penne|06260;Revest-les-Roches|06830;Les Salles-sur-Verdon|83630;Baudinard-sur-Verdon|83630;Trigance|83840;La Bastide|83840;La Martre|83840;Bargème|83840;Sigale|06910;Venanson|06450;Saint-Auban|06850;Ascros|06260;Briançonnet|06850;Rigaud|06260;Rimplas|06420;Duranus|06670;Daluis|06470;Tourette-du-Château|06830;Tournefort|06420;Châteauvert|83670;Massoins|06710;Saint-Martin-d'Entraunes|06470;Ilonse|06420;Cuébris|06910;Entraunes|06470;Puget-Rostang|06260;Roure|06420;Roubion|06420;Courmes|06620;Marie|06420;Bairols|06420;Aiglun|06910;Conségudes|06510;Pierlas|06260;Saint-Dalmas-le-Selvage|06660;Le Mas|06910;La Croix-sur-Roudoule|06260;Les Ferres|06510;Thiéry|06710;Saint-Antonin|06260;Collongues|06910;Villeneuve-d'Entraunes|06470;Châteauvieux|83840;La Roque-en-Provence|06910;Sauze|06470;Gars|06850;Châteauneuf-d'Entraunes|06470;Saint-Léger|06260;Auvare|06260;Riboux|13780;Lieuche|06260;Sallagriffon|06910;Amirat|06910;Le Bourguet|83840;Les Mujouls|06910;Brenon|83840;Vérignon|83630;Juan-les-Pins|06160;Golfe-Juan|06220;Sophia Antipolis|06560;La Bocca|06150;Aéroport Nice Côte d'Azur|06200";
+const norm2=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[-'’.]/g," ").replace(/\s+/g," ").trim();
+const COMMUNES=CP_RAW.split(";").map(x=>{const [n,c]=x.split("|");return{n,cp:c.split(","),k:norm(n),k2:norm2(n)};});
+const COMMUNE_BY=new Map(COMMUNES.map(c=>[c.k,c]));
+function placeSuggest(raw){
+  const PM=placeMap(),q=norm(raw),q2=norm2(raw);
+  const hist=freq(["f","t"]);["Cannes","Nice","Monaco"].forEach(p=>{if(!hist.some(x=>norm(x)===norm(p)))hist.push(p);});
+  const cpOf=v=>{const c=COMMUNE_BY.get(norm(v))||COMMUNES.find(c=>PM.get(c.k)===v);return c?c.cp[0]:"";};
+  const out=[],seen=new Set();
+  const add=(v,cp)=>{const k=norm(v);if(seen.has(k)||k===q)return;seen.add(k);out.push({v,cp:cp??cpOf(v)});};
+  if(!q){hist.slice(0,10).forEach(v=>add(v));return out;}
+  if(/^\d{2,5}$/.test(q)){COMMUNES.forEach(c=>{const hit=c.cp.find(x=>x.startsWith(q));if(hit)add(PM.get(c.k)||c.n,hit);});return out.slice(0,14);}
+  const starts=c=>c.k.startsWith(q)||c.k2.startsWith(q2);
+  hist.forEach(v=>{if(norm(v).startsWith(q)||norm2(v).startsWith(q2))add(v);});
+  COMMUNES.forEach(c=>{if(starts(c))add(PM.get(c.k)||c.n,c.cp[0]);});
+  hist.forEach(v=>{if(norm(v).includes(q))add(v);});
+  COMMUNES.forEach(c=>{if(c.k.includes(" "+q)||c.k2.includes(" "+q2))add(PM.get(c.k)||c.n,c.cp[0]);});
+  return out.slice(0,14);
+}
+function canonPlace(v){
+  const t=String(v||"").trim();
+  if(/^\d{5}$/.test(t)){const c=COMMUNES.find(c=>c.cp.includes(t));if(c)return placeMap().get(c.k)||c.n;}
+  const n=norm(t);if(!n)return "";
+  for(const c of allList())for(const f of ["f","t"])if(norm(c[f])===n)return c[f];
+  const pm=placeMap().get(n);return pm||titleWords(t);
+}
+
+/* ============ Code court (CRS3) : copie exacte d'une période ============ */
+const ckey=c=>norm(c.d)+"|"+norm(c.f)+"|"+norm(c.t)+"|"+norm(c.c)+"|"+norm(c.n);
+async function gzB(bytes){const st=new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));return new Uint8Array(await new Response(st).arrayBuffer());}
+async function gunzB(bytes){const st=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));return new Uint8Array(await new Response(st).arrayBuffer());}
+function periodRange(kind){const t=today();
+  if(kind==="week")return [addDays(t,-6),t];
+  if(kind==="month")return [mkey(t)+"-01",addDays(addMonths(mkey(t),1)+"-01",-1)];
+  const all=allList();return [all.length?all[0].d:t,"9999-12-31"];}
+async function exportShort(kind){
+  const [a,b]=periodRange(kind);const rows=allList().filter(c=>c.d>=a&&c.d<=b);
+  const P=[],C=[],pm=new Map(),cm=new Map();const ix=(arr,m,v)=>{if(!m.has(v)){m.set(v,arr.length);arr.push(v);}return m.get(v);};
+  const base=parseD(a);
+  const d=rows.map(c=>{const r=[Math.round((parseD(c.d)-base)/864e5),ix(P,pm,c.f),ix(P,pm,c.t),ix(C,cm,c.c)];if(c.n||c.p!=null)r.push(c.n||0);if(c.p!=null)r.push(c.p);return r;});
+  const m={};for(const k in S.m)if(k>=mkey(a)&&k<=mkey(b)&&S.m[k].iu){const x=S.m[k];m[k]=[x.dir,x.fac,x.st,x.mn,x.iu];}
+  const bytes=new TextEncoder().encode(JSON.stringify({v:3,a,b,P,C,d,m}));
+  const out=window.CompressionStream?await gzB(bytes):bytes;
+  return {code:(window.CompressionStream?"CRS3:":"CRS3T:")+b64(out),n:rows.length,a,b};
+}
+async function readShort(txt){
+  const m=String(txt||"").replace(/\s+/g,"").match(/CRS3(T?):([A-Za-z0-9+/=]+)/);if(!m)return null;
+  let o;try{let bytes=unb64(m[2]);if(!m[1]){if(!window.DecompressionStream)return {err:"Ce téléphone est trop ancien pour lire ce code. Mets iOS à jour."};bytes=await gunzB(bytes);}o=JSON.parse(new TextDecoder().decode(bytes));}
+  catch(e){return {err:"Ce code est abîmé. Recopie-le en entier depuis l'autre version."};}
+  if(!o||o.v!==3||!Array.isArray(o.d)||!/^\d{4}-\d{2}-\d{2}$/.test(o.a||"")||!/^\d{4}-\d{2}-\d{2}$/.test(o.b||""))return {err:"Ce code ne contient pas de courses."};
+  const P=Array.isArray(o.P)?o.P:[],C=Array.isArray(o.C)?o.C:[];const s=v=>String(v??"").slice(0,80);
+  const inc=o.d.filter(r=>Array.isArray(r)&&r.length>=4).map(r=>({d:addDays(o.a,+r[0]||0),f:s(P[r[1]]),t:s(P[r[2]]),c:s(C[r[3]]),n:typeof r[4]==="string"?r[4].slice(0,200):"",p:numOrNull(r[5])})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.d));
+  const ex=allList().filter(c=>c.d>=o.a&&c.d<=o.b);
+  const pool=new Map();ex.forEach(c=>{const k=ckey(c);if(!pool.has(k))pool.set(k,[]);pool.get(k).push(c);});
+  const add=[],keep=[];inc.forEach((x,i)=>{const l=pool.get(ckey(x));if(l&&l.length)keep.push([l.shift(),x]);else add.push([x,i]);});
+  const del=[];pool.forEach(l=>del.push(...l));
+  return {o,inc,ex,add,keep,del};
+}
+const shortDiff=(c,x)=>(c.p??null)!==(x.p??null)||c.f!==x.f||c.t!==x.t||c.c!==x.c||(c.n||"")!==(x.n||"");
+function applyShort(r){
+  const now=Date.now(),ks=new Set();
+  r.keep.forEach(([c,x])=>{if(shortDiff(c,x)){const t=S.m[c.mk].c[c.id];Object.assign(t,{f:x.f,t:x.t,c:x.c,n:x.n,p:x.p,u:now});ks.add(c.mk);}});
+  r.del.forEach(c=>{delete S.m[c.mk].c[c.id];S.m[c.mk].x[c.id]=now;ks.add(c.mk);});
+  r.add.forEach(([x,i])=>{const k=mkey(x.d);const id="t"+hash(ckey(x)+"|"+i+"|"+now);M(k).c[id]={d:x.d,f:x.f,t:x.t,c:x.c,p:x.p,n:x.n,k:parseD(x.d).getTime()+i,u:now};ks.add(k);});
+  const om=r.o.m&&typeof r.o.m==="object"?r.o.m:{};
+  for(const k in om){if(!/^\d{4}-\d{2}$/.test(k)||!Array.isArray(om[k]))continue;const [dir,fac,st,mn,iu]=om[k];const x=M(k);if((+iu||0)>x.iu){x.dir=numOrNull(dir);x.fac=numOrNull(fac);x.st=[0,1,2].includes(+st)?+st:0;x.mn=String(mn??"").slice(0,300);x.iu=+iu;ks.add(k);}}
+  ks.forEach(touch);
+}
+
+/* ============ Import depuis Notes ============ */
+const PLACES=[["Cannes"],["Nice"],["Monaco"],["Mougins"],["Antibes"],["Juan-les-Pins","juan"],["Golfe-Juan"],["Vallauris"],["Le Cannet","cannet"],["Mandelieu","mandelieu la napoule"],["La Napoule"],["Théoule","theoule sur mer"],["Grasse"],["Valbonne"],["Sophia","sophia antipolis"],["Biot"],["Villeneuve-Loubet"],["Cagnes","cagnes sur mer"],["Saint-Laurent","st laurent du var"],["Villefranche","villefranche sur mer"],["Beaulieu","beaulieu sur mer"],["Cap-Ferrat","st jean cap ferrat","st jean"],["Èze","eze village","eze sur mer"],["Cap-d'Ail"],["Beausoleil"],["Roquebrune","roquebrune cap martin"],["Menton"],["Saint-Raphaël"],["Fréjus"],["Sainte-Maxime"],["Saint-Tropez"],["Ramatuelle"],["Saint-Paul-de-Vence","st paul"],["Vence"],["Mouans-Sartoux"],["Aéroport","aeroport nice","aeroport de nice"],["Gare"],["Port"]];
+function placeMap(){const m=new Map();COMMUNES.forEach(c=>m.set(c.k,c.n));PLACES.forEach(([c,...al])=>[c,...al].forEach(a=>m.set(norm(a),c)));freq(["f","t"]).forEach(v=>{if(!m.has(norm(v)))m.set(norm(v),v);});return m;}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
+function parseNotes(text,year){
+  const PM=placeMap(),clients=new Map();freq(["c"]).forEach(v=>clients.set(norm(v),v));
+  const take=(raw,i)=>{for(let n=Math.min(5,raw.length-i);n>=1;n--){const hit=PM.get(norm(raw.slice(i,i+n).join(" ")));if(hit)return{name:hit,n};}return null;};
+  const rows=[],bad=[];let cur=null,seq=0,idx=0;
+  String(text||"").split(/\r?\n/).forEach(line=>{
+    const L=line.trim();if(!L)return;
+    let m=L.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{2,4}))?\s*:?$/);
+    if(m){const d=+m[1],mo=+m[2];let y=m[3]?+m[3]:year;if(y<100)y+=2000;
+      if(d>=1&&d<=31&&mo>=1&&mo<=12){const dt=new Date(y,mo-1,d);if(dt.getDate()===d){cur=ymd(dt);idx=0;return;}}
+      bad.push(L);return;}
+    if(/^\S+(\s+\d{4})?$/.test(L)&&MOIS.map(norm).includes(norm(L.split(/\s+/)[0])))return;
+    m=L.match(/^(?:(\d+)\s*[-–—.)]|[-–•*])\s*(.+)$/);
+    if(!m||!cur){bad.push(L);return;}
+    const rest=m[2].trim();let raw=rest.split(/\s+/).filter(w=>!/^(→|->|>|-|–|—|\/)$/.test(w));
+    let i=0;const p1=take(raw,i);let f,t;
+    if(p1){f=p1.name;i+=p1.n;}else{f=titleWords(raw[0]||"");i=1;}
+    if(raw[i]&&/^(a|à|vers)$/i.test(raw[i])&&take(raw,i+1))i++;
+    const p2=take(raw,i);
+    if(p2){t=p2.name;i+=p2.n;}else if(raw[i]){t=titleWords(raw[i]);i++;}else{t="";}
+    const cr=raw.slice(i).join(" ");const c=cr?(clients.get(norm(cr))||titleWords(cr)):"";
+    if(c)clients.set(norm(c),c);
+    idx++;seq++;
+    rows.push({id:"n"+hash(cur+"|"+(m[1]||"i"+idx)+"|"+norm(rest)),d:cur,f,t,c,k:parseD(cur).getTime()+seq,line:L});
+  });
+  const seen=new Set();const uniq=rows.filter(r=>seen.has(r.id)?false:(seen.add(r.id),true));
+  return{rows:uniq,bad};
+}
+
+/* ============ État de l'interface ============ */
+let xferKind="month",tab="jour",selDay=today(),selMonth=mkey(today()),query="";
+try{const p=JSON.parse(localStorage.getItem(LS+".ui")||"{}");if(["jour","mois","bilan","suivi","plus"].includes(p.tab))tab=p.tab;}catch(e){}
+const saveUI=()=>{try{localStorage.setItem(LS+".ui",JSON.stringify({tab}));}catch(e){}};
+
+const ICON={
+  jour:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>',
+  mois:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>',
+  suivi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
+  bilan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+  add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+const TABS=[["jour","Jour"],["mois","Mois"],["bilan","Bilan"],["suivi","Suivi"],["plus","Réglages"]];
+
+function renderTabs(){
+  $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="tab" data-tab="${k}" ${tab===k?'aria-current="page"':""}>${ICON[k]}<span>${l}</span></button>`).join("");
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;saveUI();render();window.scrollTo(0,0);});
+  $("#fabslot").innerHTML=(tab==="jour"||tab==="mois")?`<button class="fab" id="fab">${ICON.add}Course</button>`:"";
+  if($("#fab"))$("#fab").onclick=()=>openForm(null,tab==="jour"?selDay:(mkey(today())===selMonth?today():selMonth+"-01"));
+}
+function topHTML(){
+  const t=sync==="account"?"Sur ton compte":sync==="error"?"Hors ligne":"Sur cet appareil";
+  return `<div class="brand"><img src="data:image/png;base64,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" alt="">Carnet de courses</div><div class="sync ${sync==="account"?"on":""}" id="syncline"><b></b>${t}</div>`;
+}
+function renderTop(){const el=$("#top");if(el)el.innerHTML=topHTML();}
+
+function courseRow(c,opts={}){
+  return `<button class="crow" data-c="${c.mk}|${c.id}"><span class="no">${c.no}</span><span class="mid"><span class="rt" style="display:block">${esc(route(c))}</span><span class="cl" style="display:block">${esc(c.c||"Sans client")}${c.n?" · "+esc(c.n):""}${opts.date?" · "+esc(fmtShort(c.d)):""}</span></span>${c.p!=null?`<span class="pr">${esc(euro(c.p))}</span>`:""}</button>`;
+}
+function bindRows(root){root.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const [k,id]=b.dataset.c.split("|");openForm({k,id});});}
+
+function render(){
+  renderTabs();
+  const app=$("#app");
+  let h=`<header class="top" id="top">${topHTML()}</header>`;
+  if(tab==="jour")h+=viewJour();else if(tab==="mois")h+=viewMois();else if(tab==="bilan")h+=viewBilan();else if(tab==="suivi")h+=viewSuivi();else h+=viewPlus();
+  app.innerHTML=h;
+  if(tab==="jour")bindJour();else if(tab==="mois")bindMois();else if(tab==="bilan")bindBilan();else if(tab==="suivi")bindSuivi();else bindPlus();
+}
+
+/* ---------- Jour ---------- */
+function viewJour(){
+  const k=mkey(selDay),ml=monthList(k),day=ml.filter(c=>c.d===selDay);
+  const ws=weekStart(selDay),we=addDays(ws,6);
+  const wk=[...new Set([mkey(ws),mkey(we)])].flatMap(monthList).filter(c=>c.d>=ws&&c.d<=we).length;
+  const isToday=selDay===today();
+  const cb=combos();
+  const total=day.reduce((s,c)=>s+(c.p||0),0);
+  return `<div class="stack">
+  <div class="nav"><button class="arrow" id="dPrev" aria-label="Jour précédent">‹</button>
+    <div class="t"><h2>${esc(fmtDay(selDay))}</h2>${isToday?'<div class="small">Aujourd\'hui</div>':'<button class="linkbtn" id="dToday">Revenir à aujourd\'hui</button>'}</div>
+    <button class="arrow" id="dNext" aria-label="Jour suivant">›</button></div>
+  <div class="counters">
+    <div class="counter main"><div class="v">${day.length}</div><div class="k">${isToday?"Aujourd'hui":"Ce jour"}</div></div>
+    <div class="counter"><div class="v">${wk}</div><div class="k">Semaine</div></div>
+    <button class="counter" id="goMonth" style="text-align:left"><div class="v">${ml.length}</div><div class="k">${esc(capf(MOIS[+k.slice(5)-1]))}</div></button>
+  </div>
+  ${cb.length?`<section class="stack" style="gap:8px"><div class="label">Ajout rapide · un appui = une course</div>
+    <div class="quick">${cb.map((q,i)=>`<button class="qchip" data-q="${i}"><span class="r">${esc(route(q))}</span><span class="c">${esc(q.c||"Sans client")}</span></button>`).join("")}</div></section>`
+   :`<div class="card stack" style="gap:8px"><h3>Première course</h3><p class="small" style="margin:0">Touche <b>+ Course</b> pour noter ta première course. Tes trajets habituels apparaîtront ensuite ici : un seul appui suffira pour les ajouter. Tu peux aussi importer tes notes de l'appli Notes dans <b>Réglages</b>.</p></div>`}
+  <section class="stack" style="gap:8px">
+    <div class="label" style="display:flex;justify-content:space-between"><span>Courses du jour</span>${total?`<span>${esc(euro(total))}</span>`:""}</div>
+    <div class="list" id="dayList">${day.length?day.map(c=>courseRow(c)).join(""):'<div class="empty">Aucune course notée ce jour.</div>'}</div>
+    ${day.length?'<p class="small" style="margin:0">Le numéro suit le mois, comme dans tes notes. Touche une course pour la modifier.</p>':""}
+  </section></div>`;
+}
+function bindJour(){
+  $("#dPrev").onclick=()=>{selDay=addDays(selDay,-1);render();};
+  $("#dNext").onclick=()=>{selDay=addDays(selDay,1);render();};
+  if($("#dToday"))$("#dToday").onclick=()=>{selDay=today();render();};
+  $("#goMonth").onclick=()=>{selMonth=mkey(selDay);tab="mois";saveUI();render();};
+  const cb=combos();
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{
+    const q=cb[+b.dataset.q];const r=addCourse({d:selDay,f:q.f,t:q.t,c:q.c,p:lastPrice(q.f,q.t,q.c)});
+    const no=monthList(r.k).find(c=>c.id===r.id).no;render();
+    toast(`Course n°${no} ajoutée : ${route(q)}`,()=>{deleteCourse(r.id,r.k);render();});
+  });
+  bindRows($("#dayList"));
+}
+
+/* ---------- Mois ---------- */
+function weeksOf(list){const g=[];let cur=null;list.forEach(c=>{const ws=weekStart(c.d);if(!cur||cur.ws!==ws){cur={ws,items:[]};g.push(cur);}cur.items.push(c);});return g;}
+function viewMois(){
+  const ml=monthList(selMonth),days=new Set(ml.map(c=>c.d)).size,tot=ml.reduce((s,c)=>s+(c.p||0),0);
+  return `<div class="stack">
+  <div class="nav"><button class="arrow" id="mPrev" aria-label="Mois précédent">‹</button><div class="t"><h2>${esc(monthLabel(selMonth))}</h2></div><button class="arrow" id="mNext" aria-label="Mois suivant">›</button></div>
+  <div class="card sum"><div><span class="v">${ml.length}</span><span class="k">courses</span></div><div><span class="v">${days}</span><span class="k">jours travaillés</span></div><div><span class="v">${days?(ml.length/days).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par jour</span></div>${tot?`<div><span class="v">${esc(euro(tot))}</span><span class="k">prix notés</span></div>`:""}</div>
+  ${ml.length?`<input class="search" id="q" type="search" placeholder="Chercher un client ou une ville" value="${esc(query)}" autocomplete="off">`:""}
+  <div id="mList"></div></div>`;
+}
+function renderMonthList(){
+  const el=$("#mList");if(!el)return;
+  let ml=monthList(selMonth);
+  if(!ml.length){el.innerHTML=`<div class="list"><div class="empty">Aucune course en ${esc(monthLabel(selMonth).toLowerCase())}.<br>Ajoute-en avec <b>+ Course</b> ou importe tes notes dans Réglages.</div></div>`;return;}
+  const q=norm(query);
+  if(q)ml=ml.filter(c=>norm(c.c+" "+c.f+" "+c.t+" "+c.n).includes(q));
+  let h=q?`<div class="weekhead"><span class="w">Résultat</span><span class="pill">${plural(ml.length,"course")}</span></div>`:"";
+  if(q&&!ml.length)h+='<div class="list"><div class="empty">Aucune course ne correspond.</div></div>';
+  weeksOf(ml).forEach(w=>{
+    const we=addDays(w.ws,6);
+    if(!q)h+=`<div class="weekhead"><span class="w">Semaine du ${esc(fmtDM(w.ws))} au ${esc(fmtDM(we))}</span><span class="pill">${plural(w.items.length,"course")}</span></div>`;
+    h+='<div class="list">';
+    let d=null;
+    w.items.forEach(c=>{if(c.d!==d){d=c.d;const n=w.items.filter(x=>x.d===d).length;h+=`<div class="dayhead"><span>${esc(fmtShort(d))}</span><span class="n">${n}</span></div>`;}h+=courseRow(c);});
+    h+='</div>';
+  });
+  el.innerHTML=h;bindRows(el);
+}
+function bindMois(){
+  $("#mPrev").onclick=()=>{selMonth=addMonths(selMonth,-1);render();};
+  $("#mNext").onclick=()=>{selMonth=addMonths(selMonth,1);render();};
+  if($("#q"))$("#q").oninput=e=>{query=e.target.value;renderMonthList();};
+  renderMonthList();
+}
+
+/* ---------- Bilan ---------- */
+function groupCount(list,keyFn,labelFn){const m=new Map();list.forEach(c=>{const k=keyFn(c);const e=m.get(k)||{l:labelFn(c),n:0,p:0};e.n++;e.p+=c.p||0;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n);}
+function barsHTML(rows,limit){const max=Math.max(1,...rows.map(r=>r.n));return `<div class="bars">${rows.slice(0,limit).map(r=>`<div class="bar"><span class="n">${esc(r.l)}</span><span class="track"><span class="fill" style="display:block;width:${(r.n/max*100).toFixed(1)}%"></span></span><span class="v">${r.n}</span></div>`).join("")}</div>`;}
+function verdictHTML(k){
+  const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,fac=m.fac;
+  let v;
+  if(dir==null)v=`<div class="verdict neutral">Entre le nombre de courses donné par la direction pour comparer avec tes notes.</div>`;
+  else if(!mine)v=`<div class="verdict neutral">Pas de courses notées ce mois-ci : seuls les chiffres de la direction sont enregistrés (${plural(dir,"course")}).</div>`;
+  else{const d=dir-mine;
+    if(d===0)v=`<div class="verdict ok">Parfait : ${plural(mine,"course")} des deux côtés.</div>`;
+    else if(d>0)v=`<div class="verdict warn">La direction compte <b>${plural(d,"course")} de plus</b> que tes notes (${dir} contre ${mine}). Tu as sans doute oublié de ${d>1?"les":"la"} noter.</div>`;
+    else v=`<div class="verdict bad">Tes notes comptent <b>${plural(-d,"course")} de plus</b> que la direction (${mine} contre ${dir}). Vérifie avec elle avant de faire ta facture.</div>`;}
+  const own=monthList(k).reduce((s,c)=>s+(c.p||0),0);
+  let f="";
+  if(fac!=null){const base=dir??mine;f+=`<div class="small">Facture : <b style="color:var(--ink)">${esc(euro(fac))}</b>${base?` · soit ${esc(euro(Math.round(fac/base*100)/100))} par course en moyenne`:""}</div>`;}
+  if(own)f+=`<div class="small">Total des prix que tu as notés : <b style="color:var(--ink)">${esc(euro(own))}</b>${fac!=null?` (écart ${esc(euro(Math.round(Math.abs(fac-own)*100)/100))})`:""}</div>`;
+  if(m.mn)f+=`<div class="small">Détail : <span style="color:var(--ink)">${esc(m.mn)}</span></div>`;
+  return v+f;
+}
+function viewBilan(){
+  const k=selMonth,ml=monthList(k),m=S.m[k]||blankMonth();
+  const y=k.slice(0,4),yc=Array.from({length:12},(_,i)=>countMonth(y+"-"+pad(i+1))),ymax=Math.max(1,...yc),ytot=yc.reduce((a,b)=>a+b,0);
+  const byClient=groupCount(ml,c=>norm(c.c),c=>c.c||"Sans client");
+  const byRoute=groupCount(ml,c=>norm(c.f)+"|"+norm(c.t),route);
+  const byWeek=weeksOf(ml).map(w=>({l:fmtDM(w.ws)+" → "+fmtDM(addDays(w.ws,6)),n:w.items.length}));
+  return `<div class="stack">
+  <div class="nav"><button class="arrow" id="bPrev" aria-label="Mois précédent">‹</button><div class="t"><h2>${esc(monthLabel(k))}</h2></div><button class="arrow" id="bNext" aria-label="Mois suivant">›</button></div>
+  <section class="card stack">
+    <div class="label">Comparer avec la direction</div>
+    <div class="cmp">
+      <div class="field"><label>Mes notes</label><div class="inp big" style="display:flex;align-items:center;background:var(--accent-soft);border-color:transparent">${ml.length}</div></div>
+      <div class="field"><label for="dirIn">Selon la direction</label><input class="inp big" id="dirIn" inputmode="numeric" placeholder="—" value="${m.dir??""}"></div>
+    </div>
+    <div class="field"><label for="facIn">Montant de la facture (€)</label><input class="inp" id="facIn" inputmode="decimal" placeholder="ex. 2 450" value="${m.fac!=null?String(m.fac).replace(".",","):""}"></div>
+    <div class="field"><label>Facture</label>${statusSeg(m.st,"bSt")}</div>
+    <div class="stack" style="gap:8px" id="verdict">${verdictHTML(k)}</div>
+    <button class="linkbtn" id="toSuivi" style="align-self:flex-start;padding-left:0">Voir le suivi de tous les mois →</button>
+  </section>
+  ${ml.length?`<section class="card stack"><div class="label">Par client</div>${(g=>g.length?barsHTML(g.map(x=>({l:x.l+" ("+x.names.size+")",n:x.n})),5)+'<div class="label" style="margin-top:4px">Détail</div>':"")(clientGroups(ml))}${barsHTML(byClient,12)}</section>
+  <section class="card stack"><div class="label">Par trajet</div>${barsHTML(byRoute,10)}</section>
+  <section class="card stack"><div class="label">Par semaine</div>${barsHTML(byWeek,6)}</section>`:`<div class="card empty">Pas encore de course ce mois-ci.</div>`}
+  <section class="card stack"><div class="label" style="display:flex;justify-content:space-between"><span>Année ${y}</span><span>${plural(ytot,"course")}</span></div>
+    <div class="year">${yc.map((n,i)=>`<button class="ycol ${y+"-"+pad(i+1)===k?"cur":""}" data-ym="${y}-${pad(i+1)}" aria-label="${esc(MOIS[i])} : ${n}"><span class="yv">${n||""}</span><span class="yb" style="display:block;height:${(n/ymax*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></button>`).join("")}</div>
+  </section>
+  <section class="card stack"><div class="label">Récapitulatif</div>
+    <p class="small" style="margin:0">Le détail du mois au format de tes notes, prêt à coller dans un message ou un e-mail.</p>
+    <div class="row2"><button class="btn" id="copyRecap">Copier le récap</button><button class="btn ghost" id="csvMonth">Fichier Excel (CSV)</button></div>
+    <textarea class="codebox" id="recapBox" readonly hidden></textarea><div class="msg" id="recapMsg"></div>
+  </section></div>`;
+}
+function recapText(k){
+  const ml=monthList(k),m=S.m[k]||blankMonth();
+  let t=`${monthLabel(k)} : ${plural(ml.length,"course")}\n`;
+  if(m.dir!=null)t+=`Selon la direction : ${m.dir}\n`;
+  if(m.fac!=null)t+=`Facture : ${euro(m.fac)}${m.st?" ("+STATUS[m.st].toLowerCase()+")":""}\n`;
+  if(m.mn)t+=`Détail : ${m.mn}\n`;
+  t+="\nPar semaine\n";weeksOf(ml).forEach(w=>{t+=`- du ${fmtDM(w.ws)} au ${fmtDM(addDays(w.ws,6))} : ${w.items.length}\n`;});
+  t+="\nPar client\n";groupCount(ml,c=>norm(c.c),c=>c.c||"Sans client").forEach(r=>{t+=`- ${r.l} : ${r.n}\n`;});
+  t+="\nDétail\n";let d=null;
+  ml.forEach(c=>{if(c.d!==d){d=c.d;const x=parseD(d);t+=`${x.getDate()}/${x.getMonth()+1}\n`;}t+=`${c.no}- ${c.f} ${c.t} ${c.c}${c.p!=null?" · "+euro(c.p):""}${c.n?" ("+c.n+")":""}\n`;});
+  return t;
+}
+function csvText(list){
+  const q=v=>{v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  return "﻿"+["Date;N°;Départ;Arrivée;Client;Prix;Note"].concat(list.map(c=>{const x=parseD(c.d);return [pad(x.getDate())+"/"+pad(x.getMonth()+1)+"/"+x.getFullYear(),c.no,c.f,c.t,c.c,c.p!=null?String(c.p).replace(".",","):"",c.n].map(q).join(";");})).join("\r\n");
+}
+async function saveFile(name,text,msgEl){
+  try{const dl=window.claude&&window.claude.use?await claude.use("downloads"):null;
+    if(dl){await dl.save({filename:name,data:text});msgEl&&(msgEl.className="msg ok",msgEl.textContent="Fichier enregistré.");return;}}catch(e){if(e&&e.code==="cancelled"){return;}}
+  try{const url=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+    msgEl&&(msgEl.className="msg ok",msgEl.textContent="Fichier prêt : regarde dans Téléchargements.");}catch(e){msgEl&&(msgEl.className="msg bad",msgEl.textContent="Le fichier n'a pas pu être créé ici.");}
+}
+async function copyText(text,box,msg){
+  try{await navigator.clipboard.writeText(text);msg.className="msg ok";msg.textContent="Copié. Colle-le où tu veux.";box.hidden=true;}
+  catch(e){box.hidden=false;box.value=text;box.focus();box.select();msg.className="msg";msg.textContent="Sélectionne le texte ci-dessus puis Copier.";}
+}
+function bindBilan(){
+  $("#bPrev").onclick=()=>{selMonth=addMonths(selMonth,-1);render();};
+  $("#bNext").onclick=()=>{selMonth=addMonths(selMonth,1);render();};
+  const upd=()=>{const m=M(selMonth);const dv=$("#dirIn").value.trim();const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);m.dir=isFinite(n)?n:null;m.fac=parseMoney($("#facIn").value);m.iu=Date.now();touch(selMonth);$("#verdict").innerHTML=verdictHTML(selMonth);};
+  $("#dirIn").oninput=upd;$("#facIn").oninput=upd;
+  bindSeg("bSt",v=>{const m=M(selMonth);m.st=v;m.iu=Date.now();touch(selMonth);});
+  $("#toSuivi").onclick=()=>{tab="suivi";suiviYear=selMonth.slice(0,4);saveUI();render();window.scrollTo(0,0);};
+  document.querySelectorAll("[data-ym]").forEach(b=>b.onclick=()=>{selMonth=b.dataset.ym;render();});
+  $("#copyRecap").onclick=()=>copyText(recapText(selMonth),$("#recapBox"),$("#recapMsg"));
+  $("#csvMonth").onclick=()=>saveFile("courses-"+selMonth+".csv",csvText(monthList(selMonth)),$("#recapMsg"));
+}
+
+/* ---------- Suivi des factures ---------- */
+const STATUS=["À faire","Envoyée","Payée"];
+let suiviYear=String(new Date().getFullYear());
+function statusSeg(cur,id){return `<div class="seg" id="${id}" role="radiogroup">${STATUS.map((l,i)=>`<button type="button" role="radio" aria-checked="${(+cur||0)===i}" data-v="${i}" class="s${i}">${l}</button>`).join("")}</div>`;}
+function bindSeg(id,fn){const el=$("#"+id);if(!el)return;el.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{el.querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",x===b));fn(+b.dataset.v);});}
+function monthStats(k){const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,n=dir??mine,fac=m.fac;return{k,mine,dir,n,fac,mn:m.mn||"",st:m.st||0,per:fac!=null&&n?fac/n:null};}
+const hasInfo=k=>!!(countMonth(k)||(S.m[k]&&(S.m[k].dir!=null||S.m[k].fac!=null||S.m[k].mn)));
+const kfmt=n=>n>=1000?(n/1000).toLocaleString("fr-FR",{maximumFractionDigits:1})+"k":String(Math.round(n));
+function pct(a,b){if(!b)return "";const p=Math.round((a-b)/b*100);return (p>0?"+":"")+p+" %";}
+function viewSuivi(){
+  const y=suiviYear,cur=mkey(today());
+  const ks=Array.from({length:12},(_,i)=>y+"-"+pad(i+1));
+  const st=ks.map(monthStats);
+  const withData=st.filter(x=>hasInfo(x.k));
+  const totN=withData.reduce((s,x)=>s+x.n,0),billed=withData.filter(x=>x.fac!=null),totF=billed.reduce((s,x)=>s+x.fac,0),totFN=billed.reduce((s,x)=>s+x.n,0);
+  const maxF=Math.max(1,...st.map(x=>x.fac||0)),maxN=Math.max(1,...st.map(x=>x.n));
+  const useF=billed.length>0;
+  const rows=withData.slice().reverse().map(x=>{
+    const prevK=addMonths(x.k,-1),pv=hasInfo(prevK)?monthStats(prevK):null;
+    const ecart=x.dir!=null&&x.mine?x.dir-x.mine:null;
+    return `<button class="mrow" data-sm="${x.k}">
+      <span class="mh"><span class="mt">${esc(monthLabel(x.k))}</span>${x.fac!=null||x.dir!=null?`<span class="st s${x.st}">${STATUS[x.st]}</span>`:""}</span>
+      <span class="mg">
+        <span><b class="num">${x.mine||"—"}</b><i>mes notes</i></span>
+        <span><b class="num">${x.dir??"—"}</b><i>direction</i></span>
+        <span><b class="num">${x.fac!=null?esc(euro(x.fac)):"—"}</b><i>facture</i></span>
+        <span><b class="num">${x.per!=null?esc(euro(Math.round(x.per*100)/100)):"—"}</b><i>par course</i></span>
+      </span>
+      ${x.mn?`<span class="mn">${esc(x.mn)}</span>`:""}
+      <span class="mf">${ecart!=null?(ecart===0?'<span class="tag ok">Notes = direction</span>':`<span class="tag ${ecart>0?"warn":"bad"}">${ecart>0?ecart+" non notée"+(ecart>1?"s":""):(-ecart)+" en trop dans mes notes"}</span>`):""}${pv?`<span class="tag">${esc(pct(x.n,pv.n))||"="} courses vs ${esc(MOIS[+prevK.slice(5)-1])}</span>`:""}${pv&&x.fac!=null&&pv.fac!=null?`<span class="tag">${esc(pct(x.fac,pv.fac))||"="} facture</span>`:""}</span>
+    </button>`;}).join("");
+  return `<div class="stack">
+  <div class="nav"><button class="arrow" id="yPrev" aria-label="Année précédente">‹</button><div class="t"><h2>Suivi ${esc(y)}</h2><div class="small">Factures et nombre de courses, mois par mois</div></div><button class="arrow" id="yNext" aria-label="Année suivante">›</button></div>
+  <div class="card sum g2"><div><span class="v">${totN}</span><span class="k">courses</span></div><div><span class="v">${esc(euro(Math.round(totF*100)/100))}</span><span class="k">facturés</span></div><div><span class="v">${totFN?esc(euro(Math.round(totF/totFN*100)/100)):"—"}</span><span class="k">par course</span></div><div><span class="v">${billed.length}</span><span class="k">mois facturés</span></div></div>
+  <section class="card stack"><div class="label">${useF?"Factures par mois (€)":"Courses par mois"}</div>
+    <div class="year">${st.map((x,i)=>{const v=useF?(x.fac||0):x.n;const mx=useF?maxF:maxN;return `<button class="ycol ${x.k===cur?"cur":""}" data-sm="${x.k}" aria-label="${esc(MOIS[i])}"><span class="yv">${v?(useF?kfmt(v):v):""}</span><span class="yb" style="display:block;height:${(v/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></button>`;}).join("")}</div>
+  </section>
+  ${clientSection(y)}
+  <button class="btn ghost" id="addMonth">+ Entrer les chiffres d'un mois</button>
+  ${rows?`<div class="stack" style="gap:10px">${rows}</div>`:`<div class="card empty">Rien pour ${esc(y)}. Quand ta société te donne le nombre de courses et le montant d'un mois, entre-les ici ou dans Bilan : tu retrouveras chaque mois dans cette liste pour comparer.</div>`}
+  <p class="small" style="margin:0">Touche un mois pour modifier ses chiffres. Quand la direction n'a pas donné de chiffre, c'est le nombre de tes notes qui compte.</p>
+  </div>`;
+}
+function bindSuivi(){
+  $("#yPrev").onclick=()=>{suiviYear=String(+suiviYear-1);render();};
+  $("#yNext").onclick=()=>{suiviYear=String(+suiviYear+1);render();};
+  document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>openMonthSheet(b.dataset.sm));
+  const cl=clientYear(suiviYear);
+  document.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>openClientSheet(suiviYear,cl[+b.dataset.cl]));
+  const gr=clientGroups(yearList(suiviYear));document.querySelectorAll("[data-cg]").forEach(b=>b.onclick=()=>openClientSheet(suiviYear,gr[+b.dataset.cg]));
+  if($("#clMore"))$("#clMore").onclick=()=>{clientsAll=true;render();};
+  $("#addMonth").onclick=()=>{const cur=mkey(today());const k=suiviYear===cur.slice(0,4)?addMonths(cur,new Date().getDate()<20?-1:0):suiviYear+"-12";openMonthSheet(k,true);};
+}
+let clientsAll=false;
+function clientYear(y){const m=new Map();for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{const k=norm(c.c);const e=m.get(k)||{k,l:c.c||"Sans client",n:0,mo:Array(12).fill(0)};e.n++;e.mo[i-1]++;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n);}
+const firstWord=v=>norm(v).split(" ")[0]||"";
+function clientGroups(list,y){const m=new Map();list.forEach(c=>{const w=firstWord(c.c);if(!w)return;let e=m.get(w);if(!e){e={w,l:"Tous les "+String(c.c).trim().split(/\s+/)[0],names:new Set(),n:0,mo:Array(12).fill(0),group:true,match:x=>firstWord(x.c)===w};m.set(w,e);}e.names.add(norm(c.c));e.n++;e.mo[+c.d.slice(5,7)-1]++;});
+  return [...m.values()].filter(e=>e.names.size>1).sort((a,b)=>b.n-a.n);}
+const yearList=y=>{const l=[];for(let i=1;i<=12;i++)l.push(...monthList(y+"-"+pad(i)));return l;};
+function clientSection(y){
+  const cl=clientYear(y);if(!cl.length)return "";
+  const max=cl[0].n,shown=clientsAll?cl:cl.slice(0,8),gr=clientGroups(yearList(y));
+  const gmax=Math.max(max,...gr.map(g=>g.n));
+  return `<section class="card stack"><div class="label" style="display:flex;justify-content:space-between"><span>Courses par client · ${esc(y)}</span><span>${plural(cl.length,"client")}</span></div>
+  ${gr.length?`<div class="bars">${gr.map((g,i)=>`<button class="bar cbtn grp" data-cg="${i}"><span class="n">${esc(g.l)} <small>(${g.names.size})</small></span><span class="track"><span class="fill" style="display:block;width:${(g.n/gmax*100).toFixed(1)}%"></span></span><span class="v">${g.n}</span></button>`).join("")}</div><div class="label" style="margin-top:4px">Détail</div>`:""}
+  <div class="bars">${shown.map((r,i)=>`<button class="bar cbtn" data-cl="${i}"><span class="n">${esc(r.l)}</span><span class="track"><span class="fill" style="display:block;width:${(r.n/gmax*100).toFixed(1)}%"></span></span><span class="v">${r.n}</span></button>`).join("")}</div>
+  ${cl.length>shown.length?`<button class="linkbtn" id="clMore" style="align-self:flex-start;padding-left:0">Voir les ${cl.length} clients</button>`:""}
+  <p class="small" style="margin:0">Touche un client pour voir ses courses mois par mois.</p></section>`;
+}
+function openClientSheet(y,r){
+  if(!r)return;
+  const list=[];for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{if(r.match?r.match(c):norm(c.c)===r.k)list.push(c);});
+  const mx=Math.max(1,...r.mo),cur=mkey(today()),best=r.mo.indexOf(Math.max(...r.mo));
+  const routes=groupCount(list,c=>norm(c.f)+"|"+norm(c.t),route);
+  const active=r.mo.filter(n=>n).length;
+  openSheet(`<div class="hd"><h2>${esc(r.l)}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <div class="sum"><div><span class="v">${r.n}</span><span class="k">courses en ${esc(y)}</span></div><div><span class="v">${active?(r.n/active).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par mois actif</span></div><div><span class="v">${esc(capf(MOIS[best]))}</span><span class="k">meilleur mois (${r.mo[best]})</span></div></div>
+  <div class="year">${r.mo.map((n,i)=>`<span class="ycol ${y+"-"+pad(i+1)===cur?"cur":""}"><span class="yv">${n||""}</span><span class="yb" style="display:block;height:${(n/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></span>`).join("")}</div>
+  <div class="bars">${r.mo.map((n,i)=>n?`<div class="bar"><span class="n">${esc(capf(MOIS[i]))}</span><span class="track"><span class="fill" style="display:block;width:${(n/mx*100).toFixed(1)}%"></span></span><span class="v">${n}</span></div>`:"").join("")}</div>
+  ${r.group?`<div class="label">Par cave</div>${barsHTML(groupCount(list,c=>norm(c.c),c=>c.c),20)}`:""}
+  <div class="label">Trajets les plus faits</div>${barsHTML(routes,6)}
+  ${r.group?`<p class="small" style="margin:0">Ce total regroupe tous les clients dont le nom commence par « ${esc(r.l.slice(9))} ».</p>`:""}<form id="rnf" ${r.group?"hidden":""} class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:14px" autocomplete="off">
+    <div class="field"><label for="rnIn">Renommer ce client</label><input class="inp" id="rnIn" value="${esc(r.k?r.l:"")}" placeholder="Nom du client"></div>
+    <p class="small" style="margin:0">Le changement touche toutes ses courses, tous mois confondus. Si tu mets le nom d'un autre client (par exemple « Jo Malone » pour « Jonmalone »), les deux sont regroupés.</p>
+    <div class="msg bad" id="rnMsg"></div>
+    <button class="btn ghost" type="submit">Renommer</button>
+  </form>`);
+  $("#fx").onclick=closeSheet;
+  $("#rnf").onsubmit=e=>{e.preventDefault();const v=$("#rnIn").value.trim();
+    if(!v){$("#rnMsg").textContent="Écris un nom.";return;}
+    const typed=v.replace(/\s+/g," ");const nn=norm(typed)===r.k?typed:canon(typed,["c"]);if(nn===r.l){closeSheet();return;}
+    const n=renameClientAll(r.k,nn);
+    closeSheet();render();toast(`${plural(n,"course")} : ${r.l} → ${nn}`);};
+}
+function openMonthSheet(k,pick){
+  const m=S.m[k]||blankMonth(),mine=countMonth(k);
+  openSheet(`<div class="hd"><h2>${pick?"Chiffres d'un mois":esc(monthLabel(k))}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <form id="mf" class="stack" autocomplete="off">
+    ${pick?`<div class="field"><label for="mk">Mois</label><input class="inp" id="mk" type="month" value="${k}" required></div>`:""}
+    <div class="small" id="mMine">Mes notes : <b style="color:var(--ink)">${plural(mine,"course")}</b></div>
+    <div class="cmp">
+      <div class="field"><label for="mDir">Courses (direction)</label><input class="inp big" id="mDir" inputmode="numeric" value="${m.dir??""}" placeholder="—"></div>
+      <div class="field"><label for="mFac">Montant (€)</label><input class="inp big" id="mFac" inputmode="decimal" value="${m.fac!=null?String(m.fac).replace(".",","):""}" placeholder="—"></div>
+    </div>
+    <div class="field"><label>Facture</label>${statusSeg(m.st,"mSt")}</div>
+    <div class="field"><label for="mNote">Détail de la facture (facultatif)</label><textarea class="inp" id="mNote" maxlength="300" style="min-height:76px" placeholder="ex. 3 239,73 € + 88 € de péage · URSSAF 746 €">${esc(m.mn||"")}</textarea></div>
+    <div class="msg bad" id="mMsg"></div>
+    <button class="btn block" type="submit">Enregistrer</button>
+    <button type="button" class="btn ghost block" id="mBilan">Voir le bilan détaillé</button>
+  </form>`);
+  let stv=m.st||0;
+  bindSeg("mSt",v=>{stv=v;});
+  const key=()=>pick?$("#mk").value:k;
+  if(pick)$("#mk").onchange=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;const mm=S.m[kk]||blankMonth();$("#mMine").innerHTML=`Mes notes : <b style="color:var(--ink)">${plural(countMonth(kk),"course")}</b>`;$("#mDir").value=mm.dir??"";$("#mFac").value=mm.fac!=null?String(mm.fac).replace(".",","):"";$("#mNote").value=mm.mn||"";stv=mm.st||0;$("#mSt").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",+x.dataset.v===stv));};
+  $("#fx").onclick=closeSheet;
+  $("#mBilan").onclick=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;closeSheet();selMonth=kk;tab="bilan";saveUI();render();window.scrollTo(0,0);};
+  $("#mf").onsubmit=e=>{e.preventDefault();const kk=key();
+    if(!/^\d{4}-\d{2}$/.test(kk)){$("#mMsg").textContent="Choisis un mois.";return;}
+    const dv=$("#mDir").value.trim(),fv=$("#mFac").value.trim();
+    const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);
+    if(dv!==""&&!isFinite(n)){$("#mMsg").textContent="Le nombre de courses doit être un nombre, par exemple 78.";return;}
+    const f=parseMoney(fv);if(fv!==""&&f==null){$("#mMsg").textContent="Le montant doit être un nombre, par exemple 2309 ou 2309,50.";return;}
+    const mm=M(kk);mm.dir=n;mm.fac=f;mm.st=stv;mm.mn=$("#mNote").value.trim().slice(0,300);mm.iu=Date.now();touch(kk);
+    closeSheet();suiviYear=kk.slice(0,4);render();toast(monthLabel(kk)+" enregistré.");};
+}
+
+/* ---------- Réglages ---------- */
+function viewPlus(){
+  const inClaude=!!(window.claude&&window.claude.use);
+  const syncTxt=sync==="account"?"Tes courses sont sauvegardées sur ton compte Claude : tu les retrouves sur tous tes appareils."
+    :sync==="error"?"La sauvegarde sur ton compte ne répond pas. Tes courses restent gardées sur cet appareil."
+    :inClaude?"Connexion à ton compte…":"Version sans compte : tes courses sont gardées dans ce navigateur. Utilise le code de transfert pour les passer sur la version Claude, ou pour faire une copie de secours.";
+  return `<div class="stack">
+  <h2>Réglages</h2>
+  <section class="card stack"><div class="label">Sauvegarde</div><p style="margin:0">${esc(syncTxt)}</p><p class="small" style="margin:0">${plural(countAll(),"course")} enregistrée${countAll()>1?"s":""} au total.</p></section>
+  <section class="card stack"><div class="label">Importer depuis l'appli Notes</div>
+    <p class="small" style="margin:0">Copie ta note du mois (par exemple « Novembre ») et colle-la ici. Le format de tes notes est reconnu : une ligne de date <code>2/11</code>, puis <code>1- cannes nice Dior</code>. Rien n'est en double si tu importes deux fois la même note.</p>
+    <textarea class="inp" id="notesIn" placeholder="2/11&#10;1- cannes nice Dior&#10;2- cannes cannes nicolas&#10;3/11&#10;3- cannes villefranche sur mer Berluti"></textarea>
+    <div class="row2"><div class="field" style="flex:0 0 120px"><label for="yearIn">Année</label><input class="inp" id="yearIn" inputmode="numeric" value="${new Date().getFullYear()}"></div><button class="btn" id="parseBtn" style="align-self:flex-end">Analyser</button></div>
+  </section>
+  <section class="card stack" id="transfer"><div class="label">Transférer mes courses</div>
+    <p class="small" style="margin:0">Choisis la période, crée le code, puis colle-le dans l'autre version : pour cette période, l'autre version devient identique à celle-ci (ajouts, corrections et suppressions compris).</p>
+    <div class="seg" id="perSeg" role="radiogroup"><button type="button" role="radio" data-v="week" aria-checked="${xferKind==="week"}">7 derniers jours</button><button type="button" role="radio" data-v="month" aria-checked="${xferKind==="month"}">Ce mois-ci</button><button type="button" role="radio" data-v="all" aria-checked="${xferKind==="all"}">Tout</button></div>
+    <button class="btn ghost" id="mkCode">Créer mon code</button>
+    <textarea class="codebox" id="codeOut" readonly hidden></textarea><div class="msg" id="codeMsg"></div>
+    <div class="field"><label for="codeIn">Coller un code</label><textarea class="codebox" id="codeIn" placeholder="CRS3:…"></textarea></div>
+    <button class="btn" id="loadCode">Charger le code</button><div class="msg" id="loadMsg"></div>
+  </section>
+  <section class="card stack"><div class="label">Tout exporter</div><p class="small" style="margin:0">Toutes tes courses dans un fichier à ouvrir avec Excel ou Numbers.</p><button class="btn ghost" id="csvAll">Fichier Excel (CSV)</button><div class="msg" id="csvMsg"></div></section>
+  ${inClaude?"":`<section class="card stack"><div class="label">Sur l'écran d'accueil</div><p class="small" style="margin:0">Dans Safari, touche Partager puis « Sur l'écran d'accueil » pour ouvrir le carnet comme une appli. Attention : l'icône garde ses propres données, séparées de Safari. Utilise le code de transfert pour passer de l'un à l'autre.</p></section>`}
+  <section class="card stack"><div class="label">Effacer</div><div id="wipeZone"><button class="btn ghost" id="wipe" style="color:var(--bad)">Effacer toutes les courses de cet appareil</button></div></section>
+  </div>`;
+}
+function bindPlus(){
+  $("#parseBtn").onclick=()=>{
+    const y=parseInt($("#yearIn").value,10)||new Date().getFullYear();
+    const r=parseNotes($("#notesIn").value,y);
+    openImport(r);
+  };
+  $("#perSeg").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{xferKind=b.dataset.v;$("#perSeg").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",x===b));$("#codeOut").hidden=true;$("#codeMsg").textContent="";});
+  $("#mkCode").onclick=async()=>{
+    const r=await exportShort(xferKind);const code=r.code;const box=$("#codeOut");box.hidden=false;box.value=code;
+    const per=xferKind==="all"?"toutes tes courses":xferKind==="month"?"le mois en cours":"les 7 derniers jours";
+    try{await navigator.clipboard.writeText(code);$("#codeMsg").className="msg ok";$("#codeMsg").textContent=`Code copié : ${per}, ${plural(r.n,"course")}, ${code.length} caractères. Colle-le dans l'autre version.`;}
+    catch(e){box.focus();box.select();$("#codeMsg").className="msg";$("#codeMsg").textContent=`${capf(per)}, ${plural(r.n,"course")}. Sélectionne le code ci-dessus puis Copier.`;}};
+  $("#loadCode").onclick=async()=>{
+    const el=$("#loadMsg"),txt=$("#codeIn").value;
+    const r=await readShort(txt);
+    if(!r){const [ok,msg]=await importCode(txt);el.className="msg "+(ok?"ok":"bad");el.textContent=msg;if(ok){$("#codeIn").value="";renderTop();}return;}
+    if(r.err){el.className="msg bad";el.textContent=r.err;return;}
+    const per=r.o.b==="9999-12-31"?`depuis le ${fmtDM(r.o.a)} ${r.o.a.slice(0,4)}`:`du ${fmtDM(r.o.a)} au ${fmtDM(r.o.b)}`;
+    if(!r.add.length&&!r.del.length&&!r.keep.some(([c,x])=>shortDiff(c,x))){applyShort(r);el.className="msg ok";el.textContent=`Déjà à jour (${per} : ${plural(r.inc.length,"course")}).`;$("#codeIn").value="";return;}
+    el.className="msg";
+    el.innerHTML=`<div class="confirm" style="background:var(--accent-soft)"><b>Période ${esc(per)}</b><span class="small" style="color:var(--ink)">Sur cet appareil : ${plural(r.ex.length,"course")} → après : ${plural(r.inc.length,"course")}.<br>${r.add.length?`${r.add.length} ajoutée${r.add.length>1?"s":""}`:"Aucun ajout"}${(m=>m?` · ${m} corrigée${m>1?"s":""}`:"")(r.keep.filter(([c,x])=>shortDiff(c,x)).length)}${r.del.length?` · <b>${r.del.length} retirée${r.del.length>1?"s":""}</b> (absentes du code)`:""}.</span><div class="row2"><button class="btn ghost" id="lNo">Annuler</button><button class="btn" id="lYes">Mettre à jour</button></div></div>`;
+    $("#lNo").onclick=()=>{el.innerHTML="";};
+    $("#lYes").onclick=()=>{applyShort(r);$("#codeIn").value="";el.className="msg ok";el.textContent=`C'est à jour : ${plural(countAll(),"course")} au total.`;renderTop();};
+  };
+  $("#csvAll").onclick=()=>saveFile("courses-toutes.csv",csvText(allList()),$("#csvMsg"));
+  $("#wipe").onclick=()=>{
+    $("#wipeZone").innerHTML=`<div class="confirm"><b>Effacer ${plural(countAll(),"course")} ?</b><span class="small" style="color:var(--ink)">Crée d'abord un code de transfert si tu veux garder une copie.${sync==="account"?" L'effacement touche aussi ta sauvegarde sur le compte.":""}</span><div class="row2"><button class="btn ghost" id="wNo">Annuler</button><button class="btn danger" id="wYes">Effacer</button></div></div>`;
+    $("#wNo").onclick=render;
+    $("#wYes").onclick=()=>{const now=Date.now();for(const k in S.m){const m=S.m[k];for(const id in m.c){m.x[id]=now;}m.c={};m.dir=null;m.fac=null;m.st=0;m.mn="";m.iu=now;touch(k);}render();toast("Toutes les courses ont été effacées.");};
+  };
+}
+
+/* ============ Feuilles (formulaire, import) ============ */
+function closeSheet(){$("#sheetslot").innerHTML="";document.removeEventListener("keydown",escClose);}
+function escClose(e){if(e.key==="Escape")closeSheet();}
+function openSheet(inner){
+  $("#sheetslot").innerHTML=`<div class="sheetwrap" id="sw"><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+  $("#sw").onclick=e=>{if(e.target.id==="sw")closeSheet();};
+  document.addEventListener("keydown",escClose);
+}
+function openForm(ref,defDate){
+  const edit=ref&&S.m[ref.k]&&S.m[ref.k].c[ref.id];
+  const c=edit?Object.assign({},edit):{d:defDate||today(),f:"",t:"",c:"",p:null,n:""};
+  const no=edit?monthList(ref.k).find(x=>x.id===ref.id).no:null;
+  openSheet(`<div class="hd"><h2>${edit?"Course n°"+no:"Nouvelle course"}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <form id="cf" class="stack" autocomplete="off">
+    <div class="field"><label for="fd">Date</label><input class="inp" id="fd" type="date" value="${c.d}" required></div>
+    <div class="trip">
+      <div class="field"><label for="ff">Départ</label><input class="inp" id="ff" value="${esc(c.f)}" placeholder="Ville ou code postal" autocapitalize="words"></div>
+      <button type="button" class="swap" id="fsw" aria-label="Inverser départ et arrivée">⇄</button>
+      <div class="field"><label for="ft">Arrivée</label><input class="inp" id="ft" value="${esc(c.t)}" placeholder="Ville ou code postal" autocapitalize="words"></div>
+    </div>
+    <div class="sgl"><span id="spl">Départ</span> · tape 3 lettres ou un code postal</div>
+    <div class="sugg" id="sp"></div>
+    <div class="field"><label for="fc">Client</label><input class="inp" id="fc" value="${esc(c.c)}" placeholder="Nicolas Meynadier" autocapitalize="words"></div>
+    <div class="sugg" id="scl"></div>
+    <div class="row2">
+      <div class="field"><label for="fp">Prix (€, facultatif)</label><input class="inp" id="fp" inputmode="decimal" value="${c.p!=null?String(c.p).replace(".",","):""}" placeholder="—"></div>
+      <div class="field" style="flex:2"><label for="fn">Note (facultatif)</label><input class="inp" id="fn" value="${esc(c.n)}" placeholder="attente, colis…"></div>
+    </div>
+    <div class="msg bad" id="fmsg"></div>
+    <button class="btn block" type="submit">${edit?"Enregistrer":"Ajouter la course"}</button>
+    ${edit?'<div id="delZone"><button type="button" class="btn ghost block" id="fdel" style="color:var(--bad)">Supprimer cette course</button></div>':""}
+  </form>`);
+  let lastPlace="ff",priceTouched=!!edit&&c.p!=null;
+  const clients=freq(["c"]);
+  const suggest=(el,items,input)=>{
+    el.innerHTML=items.map(o=>`<button type="button" class="sg">${esc(o.v)}${o.cp?`<small>${esc(o.cp)}</small>`:""}</button>`).join("");
+    el.querySelectorAll(".sg").forEach((b,i)=>b.onclick=()=>{input.value=items[i].v;input.dispatchEvent(new Event("input"));
+      if(input.id==="ff"&&!$("#ft").value){$("#ft").focus();}else if(input.id==="ft"&&!$("#fc").value){$("#fc").focus();}});};
+  const refreshP=()=>{const inp=$("#"+lastPlace);$("#spl").textContent=lastPlace==="ff"?"Départ":"Arrivée";suggest($("#sp"),placeSuggest(inp.value),inp);};
+  const refreshC=()=>{const q=norm($("#fc").value);suggest($("#scl"),clients.filter(v=>!q||norm(v).includes(q)&&norm(v)!==q).slice(0,10).map(v=>({v})),$("#fc"));};
+  const autoPrice=()=>{if(priceTouched)return;const p=lastPrice($("#ff").value,$("#ft").value,$("#fc").value);$("#fp").value=p!=null?String(p).replace(".",","):"";};
+  ["ff","ft"].forEach(id=>{const el=$("#"+id);el.onfocus=()=>{lastPlace=id;refreshP();};el.oninput=()=>{lastPlace=id;refreshP();autoPrice();};});
+  $("#fc").oninput=()=>{refreshC();autoPrice();};
+  $("#fp").oninput=()=>{priceTouched=$("#fp").value.trim()!=="";};
+  $("#fsw").onclick=()=>{const a=$("#ff").value;$("#ff").value=$("#ft").value;$("#ft").value=a;autoPrice();};
+  refreshP();refreshC();
+  $("#fx").onclick=closeSheet;
+  $("#cf").onsubmit=e=>{
+    e.preventDefault();
+    const typed=$("#fc").value.trim().replace(/\s+/g," ");
+    const d=$("#fd").value,f=canonPlace($("#ff").value),t=canonPlace($("#ft").value),cl=canon($("#fc").value,["c"]);
+    const pv=$("#fp").value.trim(),p=parseMoney(pv);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$("#fmsg").textContent="Choisis une date.";return;}
+    if(!f&&!t){$("#fmsg").textContent="Indique au moins le départ ou l'arrivée.";return;}
+    if(pv&&p==null){$("#fmsg").textContent="Le prix doit être un nombre, par exemple 35 ou 42,50.";return;}
+    const o={d,f,t,c:cl,p,n:$("#fn").value.trim().slice(0,200)};
+    closeSheet();
+    if(edit){
+      if(typed&&norm(typed)===norm(edit.c)&&typed!==edit.c){o.c=typed;updateCourse(ref.id,ref.k,o);const n=renameClientAll(norm(typed),typed);render();toast(`Nom corrigé : « ${typed} » sur ${plural(n+1,"course")}.`);}
+      else{updateCourse(ref.id,ref.k,o);render();toast("Course modifiée.");}}
+    else{const r=addCourse(o);const n=monthList(r.k).find(x=>x.id===r.id).no;if(tab==="jour")selDay=d;else selMonth=mkey(d);render();toast(`Course n°${n} ajoutée : ${route(o)}`,()=>{deleteCourse(r.id,r.k);render();});}
+  };
+  if(edit)$("#fdel").onclick=()=>{
+    $("#delZone").innerHTML=`<div class="confirm"><b>Supprimer la course n°${no} ?</b><div class="row2"><button type="button" class="btn ghost" id="dNo">Garder</button><button type="button" class="btn danger" id="dYes">Supprimer</button></div></div>`;
+    $("#dNo").onclick=()=>openForm(ref);
+    $("#dYes").onclick=()=>{const old=deleteCourse(ref.id,ref.k);closeSheet();render();toast("Course supprimée.",()=>{restoreCourse(ref.id,ref.k,old);render();});};
+  };
+}
+function openImport(r){
+  if(!r.rows.length){openSheet(`<div class="hd"><h2>Rien à importer</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+    <p style="margin:0">Aucune course reconnue. Vérifie que la note contient une ligne de date (<code>2/11</code>) suivie de lignes numérotées (<code>1- cannes nice Dior</code>).</p>
+    ${r.bad.length?`<div class="warnbox">Lignes non comprises :<br>${r.bad.slice(0,8).map(l=>"<code>"+esc(l)+"</code>").join("<br>")}</div>`:""}
+    <button class="btn block" id="ok">Fermer</button>`);$("#fx").onclick=closeSheet;$("#ok").onclick=closeSheet;return;}
+  const months=[...new Set(r.rows.map(x=>mkey(x.d)))];
+  const already=r.rows.filter(x=>S.m[mkey(x.d)]&&S.m[mkey(x.d)].c[x.id]).length;
+  const days=new Set(r.rows.map(x=>x.d)).size;
+  let prev="",d=null,i=0;
+  r.rows.forEach(x=>{if(x.d!==d){d=x.d;prev+=`<div class="dayhead"><span>${esc(fmtShort(d))}</span><span class="n">${r.rows.filter(y=>y.d===d).length}</span></div>`;}i++;prev+=`<div class="crow"><span class="no">${i}</span><span class="mid"><span class="rt" style="display:block">${esc(route(x))}</span><span class="cl" style="display:block">${esc(x.c||"Sans client")}</span></span></div>`;});
+  openSheet(`<div class="hd"><h2>${plural(r.rows.length,"course")} trouvée${r.rows.length>1?"s":""}</h2><button class="x" id="fx" aria-label="Fermer">✕</button></div>
+  <p class="small" style="margin:0">${plural(days,"jour")}, ${months.map(monthLabel).join(", ")}. Vérifie les villes et les clients avant d'importer. Tu pourras corriger chaque course ensuite.${already?` ${already} déjà présente${already>1?"s":""} sera${already>1?"ont":""} mise${already>1?"s":""} à jour, sans doublon.`:""}</p>
+  ${r.bad.length?`<div class="warnbox"><b>${plural(r.bad.length,"ligne")} ignorée${r.bad.length>1?"s":""} :</b><br>${r.bad.slice(0,6).map(l=>"<code>"+esc(l)+"</code>").join("<br>")}${r.bad.length>6?"<br>…":""}</div>`:""}
+  <div class="prev">${prev}</div>
+  <button class="btn block" id="doImp">Importer ${plural(r.rows.length,"course")}</button>`);
+  $("#fx").onclick=closeSheet;
+  $("#doImp").onclick=()=>{
+    const now=Date.now(),ks=new Set();
+    r.rows.forEach(x=>{const k=mkey(x.d);const m=M(k);m.c[x.id]={d:x.d,f:x.f,t:x.t,c:x.c,p:m.c[x.id]?m.c[x.id].p:null,n:m.c[x.id]?m.c[x.id].n:"",k:x.k,u:now};delete m.x[x.id];ks.add(k);});
+    ks.forEach(touch);
+    closeSheet();selMonth=months[months.length-1];tab="mois";saveUI();query="";render();window.scrollTo(0,0);
+    toast(plural(r.rows.length,"course")+" importée"+(r.rows.length>1?"s":"")+".");
+  };
+}
+
+/* ============ Toast ============ */
+let toastTimer=null;
+function toast(msg,undo){
+  clearTimeout(toastTimer);
+  $("#toastslot").innerHTML=`<div class="toast" role="status"><span>${esc(msg)}</span>${undo?'<button id="undo">Annuler</button>':""}</div>`;
+  if(undo)$("#undo").onclick=()=>{undo();$("#toastslot").innerHTML="";};
+  toastTimer=setTimeout(()=>{$("#toastslot").innerHTML="";},undo?6000:2800);
+}
+
+render();
+</script>
+
+</body>
+</html>
