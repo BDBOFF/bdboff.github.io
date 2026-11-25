@@ -145,6 +145,19 @@ select{font:inherit;padding:10px;border-radius:12px;border:1.5px solid var(--lin
 .prow{border:0;background:none;text-align:left;padding:0}
 .unit.job .num{background:var(--gold-soft);color:var(--gold)}
 .showtxt{font-family:var(--f-display);font-size:clamp(2rem,9vw,3rem);font-weight:800;line-height:1.1;text-wrap:balance}
+.lvl{display:flex;flex-direction:column;gap:10px}
+.lvl h2{font-size:1.35rem;margin-top:2px}
+.lvl p{margin:2px 0 0}
+.locked-lvl{flex-direction:row;align-items:center;color:var(--muted);font-weight:600;opacity:.8}
+.locked-lvl svg{flex:none}
+.grp{font-size:1.15rem;margin-top:8px}
+.bubble{display:flex;gap:12px;align-items:center;background:var(--accent-soft);border-radius:20px 20px 20px 6px;padding:14px}
+.bubble b{display:block;font-family:var(--f-display);font-size:1.25rem;font-weight:600;line-height:1.2}
+.bubble small{display:block;color:var(--muted);margin-top:4px;font-size:.95rem}
+.bubble .slow{padding:4px 0}
+.combo{font-style:normal;color:var(--gold);margin-left:6px}
+.gq.ok{border-color:var(--ok);background:var(--ok-soft)}
+.gq.bad{border-color:var(--bad);background:var(--bad-soft)}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.92rem;z-index:40;max-width:88vw;text-align:center}
 @keyframes pop{0%{transform:scale(.96);opacity:.4}100%{transform:none;opacity:1}}
 .stage>*{animation:pop .2s ease-out}
@@ -258,6 +271,183 @@ const UNITS = [
   sent:[["Sorry for the delay, there is a lot of traffic","Désolé pour le retard, il y a beaucoup de circulation"],["I don't have change","Je n'ai pas de monnaie"],["Please contact the app","Contactez l'application, s'il vous plaît"],["No problem, have a nice day","Pas de problème, bonne journée"]],
   tip:{t:"Rester calme et poli", b:"<ul><li>Commence par t'excuser : <code>Sorry for the delay</code>. Ça désamorce tout.</li><li>Un problème avec la commande ? Ce n'est pas ta faute : <code>Please contact the app</code>.</li><li>Tu ne comprends pas ? <code>Can you write it?</code> puis utilise un traducteur.</li></ul><p>Termine toujours par <code>No problem</code> et <code>Have a nice day</code>.</p>"}}
 ];
+/* ---------- Dialogues des unités existantes : [phrase, traduction, bonne réponse, mauvaise, mauvaise] ---------- */
+const DLG={
+ u1:[["Hello! How are you?","Bonjour ! Comment ça va ?","I'm fine, thank you. And you?","My name is Paul.","Goodbye!"],["Thank you very much!","Merci beaucoup !","You're welcome.","Good night.","I'm sorry."],["Good morning!","Bonjour !","Good morning!","Good night!","No, thank you."]],
+ u2:[["What is your name?","Comment tu t'appelles ?","My name is Paul.","I am fine.","I live in Cannes."],["Where are you from?","D'où viens-tu ?","I am from France.","I am twenty.","Nice to meet you."],["Nice to meet you!","Enchanté !","Nice to meet you too.","I don't understand you.","Goodbye, sorry."]],
+ u3:[["How old are you?","Quel âge as-tu ?","I am thirty years old.","I have thirty years.","I am fine."],["How much is it?","C'est combien ?","It's ten euros.","It's Monday.","It's my brother."]],
+ u4:[["Do you have children?","Tu as des enfants ?","Yes, I have two children.","Yes, I am a child.","No, I am tired."],["Who is this?","Qui est-ce ?","This is my sister.","This is my coffee.","It is near."]],
+ u5:[["What would you like?","Que voulez-vous ?","I would like a coffee, please.","I like Monday.","I am a coffee."],["Anything else?","Autre chose ?","No, thank you. The bill, please.","Yes, I am fine.","Goodbye, my friend."]],
+ u6:[["Can I help you?","Je peux vous aider ?","Yes, where is the station?","Yes, I am the station.","No, I am hungry."],["Is it far?","C'est loin ?","No, it's near. Turn left.","Yes, it's Sunday.","It's ten euros."]],
+ u7:[["What time is it?","Quelle heure est-il ?","It's eight o'clock.","It's Monday, yes.","It's my week."],["See you tomorrow!","À demain !","See you tomorrow!","Good morning!","I am yesterday."]],
+ u8:[["Do you speak English?","Tu parles anglais ?","A little. I am learning.","Yes, I eat English.","No, I go."],["Do you like coffee?","Tu aimes le café ?","Yes, I like it.","Yes, I am coffee.","No, I work."]],
+ u9:[["Are you okay?","Ça va ?","No, I am sick. I need a doctor.","Yes, I am a hospital.","I am from France."],["Can I help you?","Je peux vous aider ?","Yes, please. I am lost.","Yes, I am a pharmacy.","Slowly, goodbye."]],
+ u10:[["How are you today?","Comment vas-tu aujourd'hui ?","I'm tired but happy.","I'm expensive.","It's cheap."],["Is the hotel good?","L'hôtel est bien ?","Yes, but it's expensive.","Yes, it's tired.","No, I am cold water."]],
+ c1:[["Oh, is that my order?","Oh, c'est ma commande ?","Yes, here you go. Enjoy your meal!","Yes, I am your order.","No, goodbye."],["Thank you so much!","Merci beaucoup !","You're welcome. Have a nice day!","I don't have change.","Which floor?"]],
+ c2:[["Hello? Where are you?","Allô ? Vous êtes où ?","I'm downstairs, at the entrance.","I'm fine, thank you.","I'm twenty years old."],["I'm on the third floor.","Je suis au troisième étage.","Okay, what is the door code?","Okay, enjoy your meal.","Sorry for the delay, goodbye."]],
+ c3:[["You are late!","Vous êtes en retard !","Sorry for the delay, there is a lot of traffic.","Yes, I am late, goodbye.","Have a nice day!"],["My drink is missing.","Il manque ma boisson.","Sorry, please contact the app.","Enjoy your meal!","Which building?"]]
+};
+UNITS.forEach(u=>{u.dlg=DLG[u.id]||[];if(!u.track)u.lvl=1;});
+function U(id,lvl,title,sub,items,sent,dlg,tt,tb){UNITS.push({id,lvl,title,sub,items,sent,dlg,tip:{t:tt,b:tb}});}
+
+/* ---------- Niveau 1 (suite) ---------- */
+U("u11",1,"Couleurs et vêtements","Décrire ce qu'on porte",
+ [["Red","Rouge","rèd"],["Blue","Bleu","blou"],["Green","Vert","griin"],["Yellow","Jaune","iè-lo-ou"],["Black","Noir","blak"],["White","Blanc","ouaït"],["Shirt","Chemise","cheurt"],["T-shirt","T-shirt","tii-cheurt"],["Trousers","Pantalon","traou-zeurz"],["Shoes","Chaussures","chouz"],["Jacket","Veste","dja-kit"],["Dress","Robe","drèss"]],
+ [["I have a blue jacket","J'ai une veste bleue"],["Her dress is red","Sa robe est rouge"],["I like your shoes","J'aime tes chaussures"],["The white shirt is cheap","La chemise blanche n'est pas chère"]],
+ [["What color is your car?","De quelle couleur est ta voiture ?","It's black.","It's a car.","It's Monday."],["I like your jacket!","J'aime ta veste !","Thank you! It's new.","No, it's a jacket.","I am green."]],
+ "La couleur avant le nom","<ul><li>Comme tous les adjectifs, la couleur se place avant le nom : <code>a red car</code> (une voiture rouge).</li><li>Pour demander : <code>What color is it?</code></li><li>Clair ou foncé : <code>light blue</code>, <code>dark blue</code>.</li></ul>");
+U("u12",1,"La maison","Les pièces et les objets",
+ [["House","Maison","haouss"],["Flat","Appartement","flat"],["Room","Pièce, chambre","roum"],["Kitchen","Cuisine","ki-tchinn"],["Bedroom","Chambre","bèd-roum"],["Bathroom","Salle de bain","bath-roum"],["Door","Porte","dor"],["Window","Fenêtre","ouinn-do-ou"],["Bed","Lit","bèd"],["Chair","Chaise","tchèr"],["Key","Clé","kii"],["Upstairs","À l'étage","eup-stèrz"]],
+ [["My flat is small","Mon appartement est petit"],["The kitchen is upstairs","La cuisine est à l'étage"],["Where are my keys?","Où sont mes clés ?"],["Close the window, please","Ferme la fenêtre, s'il te plaît"]],
+ [["Where do you live?","Où habites-tu ?","I live in a small flat in Cannes.","I live a kitchen.","I am a house."],["Where is the bathroom?","Où est la salle de bain ?","It's upstairs, on the left.","It's a bed.","It's blue, thank you."]],
+ "There is, there are","<ul><li><code>There is a bed</code> = il y a un lit (un seul).</li><li><code>There are two chairs</code> = il y a deux chaises (plusieurs).</li><li>Question : <code>Is there a…?</code> = est-ce qu'il y a… ?</li></ul>");
+U("u13",1,"Le corps","Dire où on a mal",
+ [["Head","Tête","hèd"],["Eye","Œil","aï"],["Ear","Oreille","ir"],["Mouth","Bouche","maouth"],["Tooth","Dent","touth"],["Hand","Main","hannd"],["Arm","Bras","arm"],["Leg","Jambe","lèg"],["Foot","Pied","fout"],["Back","Dos","bak"],["Stomach","Ventre","steu-meuk"],["Headache","Mal de tête","hè-déïk"]],
+ [["I have a headache","J'ai mal à la tête"],["My back hurts","J'ai mal au dos"],["Wash your hands","Lave-toi les mains"],["My eyes are tired","J'ai les yeux fatigués"]],
+ [["What's wrong?","Qu'est-ce qui ne va pas ?","I have a headache.","I have a head.","I'm from France."],["Does it hurt?","Ça fait mal ?","Yes, my leg hurts a lot.","Yes, it's my hand, thank you.","No, it's expensive."]],
+ "J'ai mal à…","<ul><li><code>My back hurts</code> = j'ai mal au dos.</li><li>Avec <b>-ache</b> : <code>headache</code>, <code>toothache</code> → <code>I have a headache</code>.</li><li>Pluriels irréguliers : <code>foot → feet</code>, <code>tooth → teeth</code>.</li></ul>");
+U("u14",1,"La météo","Parler du temps qu'il fait",
+ [["Weather","Temps (météo)","oué-zeur"],["Sun","Soleil","seunn"],["Sunny","Ensoleillé","seu-ni"],["Rain","Pluie","réïn"],["It's raining","Il pleut","its réï-ning"],["Wind","Vent","ouinnd"],["Cloudy","Nuageux","klaou-di"],["Snow","Neige","sno-ou"],["Warm","Doux, chaud","ouorm"],["Summer","Été","seu-meur"],["Winter","Hiver","ouinn-teur"],["Season","Saison","sii-zeunn"]],
+ [["It's sunny today","Il fait beau aujourd'hui"],["It's raining in Paris","Il pleut à Paris"],["I love summer","J'adore l'été"],["It's cold in winter","Il fait froid en hiver"]],
+ [["Nice weather today, isn't it?","Il fait beau aujourd'hui, non ?","Yes, it's really sunny!","Yes, I am the weather.","No, I am a winter."],["Is it cold outside?","Il fait froid dehors ?","A little, take a jacket.","Yes, I eat outside.","It's my brother."]],
+ "It pour la météo","<p>Pour la météo, on utilise toujours <code>it</code> : <code>It's sunny</code>, <code>It's cold</code>, <code>It's raining</code>.</p><p>Les Anglais adorent parler de la météo : c'est le sujet parfait pour lancer une conversation.</p>");
+U("u15",1,"Les loisirs","Ce que tu aimes faire",
+ [["Music","Musique","miou-zik"],["Film","Film","film"],["Sport","Sport","sport"],["Football","Football","fout-bol"],["To play","Jouer","tou pléï"],["To read","Lire","tou riid"],["To listen","Écouter","tou li-seunn"],["To watch","Regarder","tou ouotch"],["To swim","Nager","tou souimm"],["To dance","Danser","tou danss"],["Beach","Plage","biitch"],["Weekend","Week-end","ouiik-ènnd"]],
+ [["I like listening to music","J'aime écouter de la musique"],["We watch a film","Nous regardons un film"],["I play football on Sunday","Je joue au foot le dimanche"],["Let's go to the beach","Allons à la plage"]],
+ [["What do you do at the weekend?","Que fais-tu le week-end ?","I play football and see my friends.","I am the weekend.","It's ten euros."],["Do you like music?","Tu aimes la musique ?","Yes, I love rap and pop.","Yes, I am music.","No, it's far."]],
+ "Like + -ing","<ul><li>Pour dire ce que tu aimes faire : <code>I like swimming</code>, <code>I love dancing</code>, <code>I hate running</code>.</li><li><code>Let's…</code> = allons…, faisons… : <code>Let's go!</code></li></ul>");
+U("u16",1,"Courses et argent","Acheter, payer, essayer",
+ [["Shop","Magasin","chop"],["Money","Argent","meu-ni"],["Price","Prix","praïss"],["To buy","Acheter","tou baï"],["To pay","Payer","tou péï"],["To sell","Vendre","tou sèl"],["Size","Taille","saïz"],["Receipt","Ticket de caisse","ri-siit"],["Bag","Sac","bag"],["Open","Ouvert","o-ou-peunn"],["Closed","Fermé","klo-ouzd"],["Can I try it on?","Je peux l'essayer ?","kann aï traï it onn"]],
+ [["Can I pay by card?","Je peux payer par carte ?"],["The shop is closed","Le magasin est fermé"],["Do you have a bag?","Vous avez un sac ?"],["I want to buy a jacket","Je veux acheter une veste"]],
+ [["Can I help you?","Je peux vous aider ?","Yes, I'm looking for a jacket.","Yes, I am a shop.","No, I'm closed."],["Cash or card?","Espèces ou carte ?","Card, please.","Yes, please.","It's a bag."]],
+ "How much ou how many ?","<ul><li><code>How much</code> pour ce qui ne se compte pas, et pour les prix : <code>How much is it?</code></li><li><code>How many</code> pour ce qui se compte : <code>How many bags?</code></li></ul>");
+
+/* ---------- Niveau 2 ---------- */
+U("a1",2,"Ma journée","La routine de tous les jours",
+ [["To wake up","Se réveiller","tou ouéïk eup"],["To get up","Se lever","tou guèt eup"],["To take a shower","Prendre une douche","tou téïk eu chaou-eur"],["Breakfast","Petit-déjeuner","brèk-feust"],["Lunch","Déjeuner","leunntch"],["Dinner","Dîner","di-neur"],["To start","Commencer","tou start"],["To finish","Finir","tou fi-nich"],["To go to bed","Aller se coucher","tou go-ou tou bèd"],["Always","Toujours","ol-ouéïz"],["Usually","D'habitude","iou-jeu-li"],["Never","Jamais","nè-veur"],["Sometimes","Parfois","seum-taïmz"]],
+ [["I usually wake up at seven","D'habitude, je me réveille à sept heures"],["I never eat breakfast","Je ne prends jamais de petit-déjeuner"],["She starts work at nine","Elle commence le travail à neuf heures"],["I go to bed late","Je me couche tard"]],
+ [["What time do you get up?","À quelle heure tu te lèves ?","I usually get up at six.","I get up a shower.","Yes, I am breakfast."],["Do you eat breakfast?","Tu prends un petit-déjeuner ?","Sometimes, just a coffee.","Yes, I am lunch.","Never, thank you, goodbye."]],
+ "Toujours, jamais, parfois","<ul><li>Ces mots se placent <b>avant</b> le verbe : <code>I always eat</code>, <code>I never drink</code>.</li><li>Mais <b>après</b> to be : <code>I am always tired</code>.</li><li>Questions : <code>Do you…?</code> et <code>Does she…?</code></li></ul>");
+U("a2",2,"Le passé (1)","Les verbes réguliers en -ed",
+ [["I worked","J'ai travaillé","aï oueurkt"],["I played","J'ai joué","aï pléïd"],["I watched","J'ai regardé","aï ouotcht"],["I visited","J'ai visité","aï vi-zi-tid"],["I called","J'ai appelé","aï kold"],["I lived","J'ai vécu, j'habitais","aï livd"],["I liked","J'ai aimé","aï laïkt"],["I stayed","Je suis resté","aï stéïd"],["Last night","Hier soir","last naït"],["Last week","La semaine dernière","last ouiik"],["Ago","Il y a (temps)","eu-go-ou"],["Did you…?","Est-ce que tu as… ?","did iou"]],
+ [["I worked yesterday","J'ai travaillé hier"],["We watched a film last night","Nous avons regardé un film hier soir"],["I called my mother two days ago","J'ai appelé ma mère il y a deux jours"],["Did you like it?","Ça t'a plu ?"]],
+ [["What did you do yesterday?","Qu'as-tu fait hier ?","I worked and then I watched a film.","I work tomorrow.","I am yesterday."],["Did you like the film?","Le film t'a plu ?","Yes, I liked it a lot.","Yes, I like it tomorrow.","No, I am a film."]],
+ "Le passé simple","<ul><li>Verbe + <b>-ed</b>, pareil pour tout le monde : <code>I worked</code>, <code>she worked</code>.</li><li>Question : <code>Did you work?</code> · Négation : <code>I didn't work</code> (le verbe reprend sa forme normale).</li><li><code>ago</code> se place après la durée : <code>two days ago</code>.</li></ul>");
+U("a3",2,"Le passé (2)","Les verbes irréguliers essentiels",
+ [["I went","Je suis allé","aï ouènnt"],["I had","J'ai eu, j'avais","aï had"],["I saw","J'ai vu","aï so"],["I ate","J'ai mangé","aï éït"],["I bought","J'ai acheté","aï bot"],["I did","J'ai fait","aï did"],["I made","J'ai préparé, fabriqué","aï méïd"],["I took","J'ai pris","aï touk"],["I came","Je suis venu","aï kéïm"],["I said","J'ai dit","aï sèd"],["I was","J'étais","aï ouoz"],["They were","Ils étaient","zéï oueur"]],
+ [["I went to London last year","Je suis allé à Londres l'an dernier"],["We had a good time","On s'est bien amusés"],["I saw your sister","J'ai vu ta sœur"],["It was great","C'était génial"]],
+ [["How was your weekend?","Comment s'est passé ton week-end ?","It was great! I went to the beach.","It is weekend.","I go to the beach tomorrow."],["Where did you go on holiday?","Où es-tu parti en vacances ?","I went to Italy with my family.","I go Italy.","I was a holiday."]],
+ "Les verbes irréguliers","<ul><li>Les verbes les plus utilisés sont irréguliers : <code>go → went</code>, <code>have → had</code>, <code>see → saw</code>.</li><li>Bonne nouvelle : ils ne changent pas selon la personne.</li><li><code>was</code> avec I, he, she, it · <code>were</code> avec you, we, they.</li></ul>");
+U("a4",2,"Le futur","Will et going to",
+ [["I will","Je ferai","aï ouil"],["I'll call you","Je t'appellerai","aïl kol iou"],["I'm going to","Je vais (c'est prévu)","aïm go-ing tou"],["Next week","La semaine prochaine","nèkst ouiik"],["Next year","L'année prochaine","nèkst iir"],["Soon","Bientôt","soun"],["Later","Plus tard","léï-teur"],["Maybe","Peut-être","méï-bi"],["Plan","Projet","plann"],["Tonight","Ce soir","tou-naït"],["I won't","Je ne ferai pas","aï ouo-ount"],["Holiday","Vacances","ho-li-déï"]],
+ [["I will call you later","Je t'appellerai plus tard"],["I'm going to visit London","Je vais visiter Londres"],["Maybe I will come tonight","Je viendrai peut-être ce soir"],["What are you going to do?","Qu'est-ce que tu vas faire ?"]],
+ [["What are you going to do tonight?","Que vas-tu faire ce soir ?","I'm going to watch a film.","I watched a film.","I am tonight."],["Can you call me later?","Tu peux m'appeler plus tard ?","Sure, I'll call you at six.","Yes, I called you.","No, I am later."]],
+ "Deux façons de parler du futur","<ul><li><code>going to</code> pour un projet déjà prévu : <code>I'm going to travel</code>.</li><li><code>will</code> pour une décision sur le moment ou une promesse : <code>I'll help you</code>.</li><li>Négation : <code>won't</code> = will not.</li></ul>");
+U("a5",2,"Comparer","Plus, moins, le meilleur",
+ [["Bigger","Plus grand","bi-gueur"],["Smaller","Plus petit","smo-leur"],["Cheaper","Moins cher","tchii-peur"],["More expensive","Plus cher","mor ex-pènn-siv"],["Better","Meilleur, mieux","bè-teur"],["Worse","Pire","oueurss"],["The best","Le meilleur","zeu bèst"],["The worst","Le pire","zeu oueurst"],["Than","Que (comparaison)","zann"],["As fast as","Aussi rapide que","az fast az"],["Fast","Rapide","fast"],["Slow","Lent","slo-ou"]],
+ [["London is bigger than Cannes","Londres est plus grand que Cannes"],["This phone is cheaper","Ce téléphone est moins cher"],["It's the best pizza in town","C'est la meilleure pizza de la ville"],["My scooter is as fast as your car","Mon scooter est aussi rapide que ta voiture"]],
+ [["Which is better, tea or coffee?","Lequel est meilleur, thé ou café ?","Coffee is better for me.","Coffee is the bigger.","I am better than tea."],["Is Nice bigger than Cannes?","Nice est plus grande que Cannes ?","Yes, Nice is much bigger.","Yes, it's the worst.","No, it's cheap."]],
+ "Comparer","<ul><li>Mot court + <b>-er</b> : <code>big → bigger than</code>.</li><li>Mot long : <code>more expensive than</code>.</li><li>Le plus : <code>the biggest</code>, <code>the most expensive</code>.</li><li>Irréguliers : <code>good → better → the best</code>, <code>bad → worse → the worst</code>.</li></ul>");
+U("a6",2,"Au téléphone","Appeler et répondre",
+ [["Hello, it's Paul","Allô, c'est Paul","hè-lo-ou its pol"],["Who's calling?","Qui est à l'appareil ?","houz ko-ling"],["Can I speak to…?","Je peux parler à… ?","kann aï spiik tou"],["Hold on","Ne quittez pas","ho-old onn"],["I'll call you back","Je te rappelle","aïl kol iou bak"],["Message","Message","mè-sidj"],["Phone number","Numéro de téléphone","fo-oun neum-beur"],["I can't hear you","Je ne t'entends pas","aï kannt hir iou"],["Speak louder","Parle plus fort","spiik laou-deur"],["Wrong number","Mauvais numéro","rong neum-beur"],["Battery","Batterie","ba-teu-ri"],["To text","Envoyer un SMS","tou tèkst"]],
+ [["Sorry, I can't hear you","Désolé, je ne t'entends pas"],["I'll call you back in five minutes","Je te rappelle dans cinq minutes"],["Can you text me the address?","Tu peux m'envoyer l'adresse par SMS ?"],["What is your phone number?","Quel est ton numéro ?"]],
+ [["Hello, who's calling?","Allô, qui est à l'appareil ?","Hi, it's Paul. Is Sarah there?","I am calling.","Goodbye, Paul."],["Sorry, she's not here.","Désolé, elle n'est pas là.","Okay, can I leave a message?","Okay, I am here.","Yes, she is a phone."]],
+ "Au téléphone","<ul><li>Pour te présenter : <code>It's Paul</code> (et pas « I am Paul »).</li><li><code>Hold on</code> = patientez.</li><li>Pour épeler, retiens les lettres pièges : A (éï), E (ii), I (aï), G (djii), J (djéï), R (ar), Y (ouaï).</li></ul>");
+U("a7",2,"Voyager","Aéroport, train, hôtel",
+ [["Airport","Aéroport","èr-port"],["Plane","Avion","pléïn"],["Train","Train","tréïn"],["Passport","Passeport","pass-port"],["Luggage","Bagages","leu-guidj"],["Flight","Vol","flaït"],["Delayed","En retard","di-léïd"],["Booking","Réservation","bou-king"],["Single room","Chambre simple","sinn-gueul roum"],["Return ticket","Aller-retour","ri-teurn ti-kit"],["Departure","Départ","di-par-tcheur"],["Arrival","Arrivée","eu-raï-veul"]],
+ [["My flight is delayed","Mon vol est en retard"],["I have a booking for two nights","J'ai une réservation pour deux nuits"],["A return ticket to London, please","Un aller-retour pour Londres, s'il vous plaît"],["Where is my luggage?","Où sont mes bagages ?"]],
+ [["Passport, please.","Passeport, s'il vous plaît.","Here you are.","I am a passport.","Yes, I'm delayed."],["Do you have a booking?","Vous avez une réservation ?","Yes, it's under the name Martin.","Yes, I booking.","No, I am a single room."]],
+ "En voyage","<ul><li>Quand tu tends quelque chose : <code>Here you are</code>.</li><li>Pour réserver : <code>I'd like to book…</code></li><li>Pour un horaire : <code>What time does the train leave?</code></li></ul>");
+U("a8",2,"Le travail","Parler de son métier",
+ [["Job","Travail, emploi","djob"],["What do you do?","Tu fais quoi dans la vie ?","ouat dou iou dou"],["I'm a delivery driver","Je suis livreur","aïm eu di-li-veu-ri draï-veur"],["Boss","Patron","boss"],["Colleague","Collègue","ko-liig"],["Customer","Client","keuss-teu-meur"],["Salary","Salaire","sa-leu-ri"],["Full-time","À temps plein","foul taïm"],["Part-time","À temps partiel","part taïm"],["Day off","Jour de repos","déï of"],["Busy","Occupé","bi-zi"],["Meeting","Réunion","mii-ting"]],
+ [["I work full-time","Je travaille à temps plein"],["Tomorrow is my day off","Demain, c'est mon jour de repos"],["I'm very busy today","Je suis très occupé aujourd'hui"],["My boss is nice","Mon patron est sympa"]],
+ [["What do you do?","Tu fais quoi dans la vie ?","I'm a delivery driver in Cannes.","I do a job.","I am what."],["Do you like your job?","Tu aimes ton travail ?","Yes, I like it, but it's tiring.","Yes, I am a job.","No, I'm a boss of it."]],
+ "Dire son métier","<ul><li>On met toujours <code>a</code> ou <code>an</code> : <code>I'm a driver</code>, <code>She's an engineer</code>.</li><li>Pour demander : <code>What do you do?</code>, plus naturel que « What is your job? ».</li></ul>");
+U("a9",2,"Émotions","Dire ce que tu ressens",
+ [["Sad","Triste","sad"],["Angry","En colère","ann-gri"],["Scared","Effrayé","skèrd"],["Excited","Enthousiaste, impatient","ik-saï-tid"],["Bored","Qui s'ennuie","bord"],["Worried","Inquiet","oueu-rid"],["Proud","Fier","praoud"],["Surprised","Surpris","seur-praïzd"],["Nervous","Stressé","neur-veuss"],["Relaxed","Détendu","ri-lakst"],["In love","Amoureux","inn leuv"],["I miss you","Tu me manques","aï miss iou"]],
+ [["I'm so excited","J'ai trop hâte"],["Don't worry","Ne t'inquiète pas"],["I'm proud of you","Je suis fier de toi"],["I'm bored at home","Je m'ennuie à la maison"]],
+ [["You look sad. What's wrong?","Tu as l'air triste. Qu'est-ce qui ne va pas ?","I'm just tired, don't worry.","I'm a sad look.","Yes, it's wrong."],["I passed my exam!","J'ai réussi mon examen !","Congratulations! I'm proud of you.","I'm sorry for you.","You are bored."]],
+ "Bored ou boring ?","<ul><li><b>-ed</b> = ce que tu ressens : <code>I'm bored</code> (je m'ennuie).</li><li><b>-ing</b> = ce qui provoque : <code>The film is boring</code> (le film est ennuyeux).</li><li>Attention : « I'm boring » veut dire « je suis ennuyeux » !</li></ul>");
+U("a10",2,"Questions pour discuter","Lancer une conversation",
+ [["Do you like…?","Tu aimes… ?","dou iou laïk"],["What do you think?","Qu'en penses-tu ?","ouat dou iou think"],["Why?","Pourquoi ?","ouaï"],["Because","Parce que","bi-koz"],["How long…?","Depuis combien de temps… ?","haou long"],["How often…?","À quelle fréquence… ?","haou o-feunn"],["Which one?","Lequel ?","ouitch ouann"],["Who?","Qui ?","hou"],["When?","Quand ?","ouènn"],["What about you?","Et toi ?","ouat eu-baout iou"],["Really?","C'est vrai ?","ri-li"],["Tell me more","Raconte-moi","tèl mi mor"]],
+ [["Why are you learning English?","Pourquoi tu apprends l'anglais ?"],["Because I want to travel","Parce que je veux voyager"],["How long have you lived here?","Depuis combien de temps tu habites ici ?"],["I love pizza, what about you?","J'adore la pizza, et toi ?"]],
+ [["I'm from Canada. What about you?","Je viens du Canada. Et toi ?","I'm from France, I live in Cannes.","Yes, I am about you.","Because Canada."],["Why are you learning English?","Pourquoi tu apprends l'anglais ?","Because I talk to tourists at work.","Because yes English.","Why not, goodbye."]],
+ "Relancer la conversation","<ul><li>La phrase magique : <code>What about you?</code> (et toi ?). Tu réponds court, puis tu renvoies la question.</li><li>Pour montrer que tu écoutes : <code>Really?</code>, <code>Tell me more</code>.</li></ul>");
+U("a11",2,"Mots de liaison","Faire des phrases plus longues",
+ [["And","Et","annd"],["But","Mais","beut"],["Or","Ou","or"],["So","Donc, alors","so-ou"],["Then","Ensuite","zènn"],["Also","Aussi","ol-so-ou"],["Too","Aussi (en fin de phrase)","tou"],["Actually","En fait","ak-tchou-eu-li"],["However","Cependant","haou-è-veur"],["If","Si","if"],["Before","Avant","bi-for"],["After","Après","af-teur"]],
+ [["I'm tired but happy","Je suis fatigué mais content"],["It's raining so I stay home","Il pleut donc je reste à la maison"],["Actually, I don't like coffee","En fait, je n'aime pas le café"],["I like it too","Je l'aime aussi"]],
+ [["Do you want tea or coffee?","Tu veux du thé ou du café ?","Actually, just water, please.","Yes, or.","I want but."],["Are you coming tonight?","Tu viens ce soir ?","Yes, but I'll be a bit late.","Yes, so tonight.","Then and also."]],
+ "Also ou too ?","<ul><li><code>also</code> avant le verbe : <code>I also like tea</code>.</li><li><code>too</code> en fin de phrase : <code>I like tea too</code>.</li><li>« Moi aussi » : <code>Me too!</code> · « Moi non plus » : <code>Me neither</code>.</li></ul>");
+U("a12",2,"En ce moment","Le présent en -ing",
+ [["I'm working","Je suis en train de travailler","aïm oueur-king"],["What are you doing?","Qu'est-ce que tu fais ?","ouat ar iou dou-ing"],["I'm coming","J'arrive","aïm keu-ming"],["I'm waiting","J'attends","aïm ouéï-ting"],["I'm looking for","Je cherche","aïm lou-king for"],["I'm driving","Je conduis","aïm draï-ving"],["She's sleeping","Elle dort","chiz slii-ping"],["It's working","Ça marche","its oueur-king"],["Right now","En ce moment même","raït naou"],["At the moment","Actuellement","at zeu mo-ou-meunt"],["Are you listening?","Tu écoutes ?","ar iou li-seu-ning"],["I'm joking","Je plaisante","aïm djo-ou-king"]],
+ [["I'm waiting for you downstairs","Je t'attends en bas"],["What are you doing right now?","Qu'est-ce que tu fais, là ?"],["I'm looking for my keys","Je cherche mes clés"],["Don't worry, I'm joking","T'inquiète, je plaisante"]],
+ [["Hey, what are you doing?","Hé, tu fais quoi ?","I'm working. Can I call you later?","I work every day.","I'm a doing."],["Where are you? I'm waiting!","T'es où ? J'attends !","Sorry, I'm coming!","I came yesterday.","I'm waiting you is."]],
+ "Être en train de","<ul><li><code>be + verbe-ing</code> pour ce qui se passe maintenant : <code>I'm eating</code>.</li><li>Comparer : <code>I work every day</code> (habitude) et <code>I'm working now</code> (en ce moment).</li><li><code>I'm coming!</code> = j'arrive !</li></ul>");
+
+/* ---------- Niveau 3 ---------- */
+U("b1",3,"Donner son avis","Penser, être d'accord ou pas",
+ [["I think","Je pense","aï think"],["In my opinion","À mon avis","inn maï o-pi-nieunn"],["I agree","Je suis d'accord","aï eu-grii"],["I disagree","Je ne suis pas d'accord","aï di-seu-grii"],["It depends","Ça dépend","it di-pènndz"],["I'm not sure","Je ne suis pas sûr","aïm not chour"],["Exactly","Exactement","ig-zakt-li"],["That's true","C'est vrai","zats trou"],["I don't think so","Je ne crois pas","aï dont think so-ou"],["I prefer","Je préfère","aï pri-feur"],["For me","Pour moi","for mi"],["You're right","Tu as raison","iour raït"]],
+ [["I think you're right","Je pense que tu as raison"],["In my opinion, it's too expensive","À mon avis, c'est trop cher"],["I don't agree with you","Je ne suis pas d'accord avec toi"],["It depends on the weather","Ça dépend du temps"]],
+ [["I think Cannes is the best city in France.","Je pense que Cannes est la meilleure ville de France.","I agree, but Paris is nice too.","I am agree.","I think yes no."],["Is it a good idea?","C'est une bonne idée ?","I'm not sure. It depends.","I am depends.","Yes, I'm idea."]],
+ "I agree, jamais « I am agree »","<ul><li><code>agree</code> est un verbe : <code>I agree</code>, <code>I don't agree</code>.</li><li>« I am agree » est l'erreur française numéro 1 !</li><li>« Je pense que oui » : <code>I think so</code>.</li></ul>");
+U("b2",3,"Expressions courantes","Parler comme un natif",
+ [["Of course","Bien sûr","ov korss"],["No way!","Pas possible ! Hors de question !","no-ou ouéï"],["Never mind","Laisse tomber","nè-veur maïnd"],["It's up to you","C'est toi qui vois","its eup tou iou"],["I'm kidding","Je rigole","aïm ki-ding"],["Go ahead","Vas-y","go-ou eu-hèd"],["Take your time","Prends ton temps","téïk ior taïm"],["It doesn't matter","Ce n'est pas grave","it deu-zeunt ma-teur"],["Good luck!","Bonne chance !","goud leuk"],["Cheers!","Santé ! Merci !","tchirz"],["My bad","Ma faute","maï bad"],["Fair enough","Ça se tient","fèr i-neuf"]],
+ [["Sorry, my bad","Désolé, c'est ma faute"],["Take your time, no problem","Prends ton temps, pas de souci"],["It doesn't matter","Ce n'est pas grave"],["Good luck with your exam","Bonne chance pour ton examen"]],
+ [["Sorry, I forgot your drink!","Désolé, j'ai oublié ta boisson !","Never mind, it doesn't matter.","Cheers, my drink.","Of course I forgot."],["Pizza or burger tonight?","Pizza ou burger ce soir ?","It's up to you!","I'm up to pizza.","No way, burger is a pizza."]],
+ "Cheers et No way","<ul><li>Au Royaume-Uni, <code>Cheers</code> veut dire « santé », mais aussi « merci » et même « salut ».</li><li><code>No way!</code> exprime la surprise (« pas possible ! ») ou le refus (« hors de question »).</li></ul>");
+U("b3",3,"Present perfect","Expériences et actions récentes",
+ [["I have been","J'ai été, je suis allé","aï hav biin"],["Have you ever…?","As-tu déjà… ?","hav iou è-veur"],["I've never","Je n'ai jamais","aïv nè-veur"],["Already","Déjà","ol-rè-di"],["Yet","Déjà, encore (questions)","iètt"],["Just","Venir de","djeust"],["I've lost my keys","J'ai perdu mes clés","aïv lost maï kiiz"],["I've finished","J'ai fini","aïv fi-nicht"],["Since","Depuis (une date)","sinnss"],["For","Depuis (une durée)","for"],["Ever","Déjà (dans une question)","è-veur"],["Not yet","Pas encore","not iètt"]],
+ [["Have you ever been to London?","Es-tu déjà allé à Londres ?"],["I've never seen snow","Je n'ai jamais vu de neige"],["I've just arrived","Je viens d'arriver"],["I've lived here for five years","J'habite ici depuis cinq ans"]],
+ [["Have you ever been to the USA?","Tu es déjà allé aux États-Unis ?","No, never. But I'd love to go.","Yes, I go USA tomorrow.","I am been."],["Have you finished?","Tu as fini ?","Not yet, give me two minutes.","Yes, I finish tomorrow.","Already yet."]],
+ "Have + participe passé","<ul><li>Pour une expérience sans date ou un résultat visible maintenant : <code>I've been to Spain</code>.</li><li>Avec une date précise, on reprend le passé simple : <code>I went to Spain in 2020</code>.</li><li><code>for</code> + durée (<code>for 5 years</code>), <code>since</code> + point de départ (<code>since 2020</code>).</li></ul>");
+U("b4",3,"Phrasal verbs","Verbe + petit mot = nouveau sens",
+ [["To pick up","Aller chercher, ramasser","tou pik eup"],["To give up","Abandonner","tou guiv eup"],["To find out","Découvrir","tou faïnd aout"],["To turn on","Allumer","tou teurn onn"],["To turn off","Éteindre","tou teurn of"],["To look for","Chercher","tou louk for"],["To come back","Revenir","tou keumm bak"],["To hang out","Traîner avec des amis","tou hang aout"],["To figure out","Comprendre, trouver","tou fi-gueur aout"],["To run out of","Ne plus avoir de","tou reunn aout ov"],["To get on","Monter (bus, train)","tou guèt onn"],["To get off","Descendre (bus, train)","tou guèt of"]],
+ [["Can you pick me up at eight?","Tu peux venir me chercher à huit heures ?"],["Don't give up","N'abandonne pas"],["Turn off the light, please","Éteins la lumière, s'il te plaît"],["We ran out of milk","On n'a plus de lait"]],
+ [["What did you do last night?","Qu'as-tu fait hier soir ?","I hung out with some friends.","I hang off friends.","I turned on last night."],["I can't do it, it's too hard!","Je n'y arrive pas, c'est trop dur !","Don't give up, you can do it!","Turn it off, yes.","Pick it hard."]],
+ "Les phrasal verbs","<ul><li>Les anglophones les utilisent tout le temps.</li><li>Le petit mot change tout : <code>turn on</code> (allumer), <code>turn off</code> (éteindre).</li><li>Apprends-les comme des mots entiers, sans chercher de logique.</li></ul>");
+U("b5",3,"Conseils et obligations","Should, must, have to",
+ [["You should","Tu devrais","iou choud"],["You shouldn't","Tu ne devrais pas","iou chou-deunt"],["I have to","Je dois","aï hav tou"],["I don't have to","Je ne suis pas obligé","aï dont hav tou"],["You must","Tu dois absolument","iou meust"],["You mustn't","Tu ne dois surtout pas","iou meu-seunt"],["Can I…?","Je peux… ?","kann aï"],["Could you…?","Pourriez-vous… ?","koud iou"],["Allowed","Autorisé","eu-laoud"],["Forbidden","Interdit","for-bi-deunn"],["Advice","Conseil","eud-vaïss"],["Rule","Règle","roul"]],
+ [["You should see a doctor","Tu devrais voir un médecin"],["I have to work tomorrow","Je dois travailler demain"],["You don't have to pay","Tu n'es pas obligé de payer"],["Could you help me, please?","Pourriez-vous m'aider, s'il vous plaît ?"]],
+ [["I have a terrible headache.","J'ai un mal de tête horrible.","You should take a break and drink water.","You must a headache.","I have to headache."],["Do I have to pay now?","Je dois payer maintenant ?","No, you don't have to. Pay later.","Yes, you mustn't.","You should money."]],
+ "Should ou have to ?","<ul><li><code>should</code> = conseil (tu devrais).</li><li><code>have to</code> = obligation (je dois).</li><li>Piège : <code>you don't have to</code> = tu n'es pas obligé, mais <code>you mustn't</code> = c'est interdit !</li></ul>");
+U("b6",3,"Et si… ?","Hypothèses et souhaits",
+ [["If I were you","Si j'étais toi","if aï oueur iou"],["I would","Je ferais","aï woud"],["I could","Je pourrais","aï koud"],["I wish","J'aimerais (regret)","aï ouich"],["If I had money","Si j'avais de l'argent","if aï had meu-ni"],["I would travel","Je voyagerais","aï woud tra-veul"],["What would you do?","Que ferais-tu ?","ouat woud iou dou"],["Imagine","Imagine","i-ma-djinn"],["Dream","Rêve","driim"],["Rich","Riche","ritch"],["I'd rather","Je préférerais","aïd ra-zeur"],["Unless","À moins que","eunn-lèss"]],
+ [["If I were you, I would go","Si j'étais toi, j'irais"],["If I had money, I would travel","Si j'avais de l'argent, je voyagerais"],["I wish I could speak English","J'aimerais savoir parler anglais"],["I'd rather stay home","Je préférerais rester à la maison"]],
+ [["What would you do with a million euros?","Que ferais-tu avec un million d'euros ?","I would buy a house and travel.","I will buy yesterday.","I would a million."],["Should I take the job?","Je devrais accepter ce boulot ?","If I were you, I would take it.","If I was job.","I wish a job you."]],
+ "Le conditionnel","<ul><li><code>If + passé, would + verbe</code> : <code>If I had time, I would come</code>.</li><li>Avec to be, on dit <code>If I were</code> pour tout le monde.</li><li><code>I'd</code> = I would · <code>I wish I could…</code> = j'aimerais pouvoir…</li></ul>");
+U("b7",3,"Small talk","Discuter de tout et de rien",
+ [["How's it going?","Comment ça va ?","haouz it go-ing"],["What's up?","Quoi de neuf ?","ouats eup"],["Not bad","Pas mal","not bad"],["Long time no see","Ça fait longtemps","long taïm no-ou sii"],["Take care","Prends soin de toi","téïk kèr"],["See you later","À plus tard","sii iou léï-teur"],["Have a good one","Bonne journée","hav eu goud ouann"],["Same here","Pareil pour moi","séïm hir"],["Nice to see you","Content de te voir","naïs tou sii iou"],["How was your day?","Ta journée s'est bien passée ?","haou ouoz ior déï"],["Pretty good","Plutôt bien","pri-ti goud"],["Catch you later","À plus","katch iou léï-teur"]],
+ [["Hey, long time no see!","Hé, ça fait longtemps !"],["Not bad, and you?","Pas mal, et toi ?"],["Take care, see you soon","Prends soin de toi, à bientôt"],["How was your day?","Ta journée s'est bien passée ?"]],
+ [["Hey! What's up?","Salut ! Quoi de neuf ?","Not much. What about you?","Up is the sky.","I am up."],["How was your day?","Ta journée s'est bien passée ?","Pretty good, a bit busy. And yours?","My day is a day.","Yes, it was."]],
+ "What's up?","<ul><li>Ce n'est pas une vraie question : réponds <code>Not much</code> ou <code>Nothing special</code>.</li><li>À <code>How's it going?</code>, réponds <code>Good, thanks!</code> ou <code>Not bad</code>.</li></ul>");
+U("b8",3,"L'anglais parlé","Comprendre les natifs",
+ [["Gonna","Going to (va)","go-neu"],["Wanna","Want to (veux)","oua-neu"],["Gotta","Got to (dois)","go-teu"],["Kinda","Kind of (un peu)","kaïnn-deu"],["Dunno","Don't know (sais pas)","deu-no-ou"],["Ya","You (tu)","ieu"],["Yeah","Ouais","iè-eu"],["Nope","Non","no-oup"],["Cool","Cool, d'accord","koul"],["Awesome","Génial","o-seum"],["Guys","Les gars, vous","gaïz"],["Mate","Pote (UK, Australie)","méït"]],
+ [["I'm gonna be late","Je vais être en retard"],["Do you wanna come?","Tu veux venir ?"],["I gotta go","Faut que j'y aille"],["Thanks, mate!","Merci, mon pote !"]],
+ [["You wanna grab a coffee?","Tu veux prendre un café ?","Yeah, sounds good!","Nope, I'm gonna coffee.","I dunno a coffee."],["Hey guys, I gotta go.","Salut les gars, faut que j'y aille.","Okay, see ya!","Yes, gotta guys.","I'm kinda go."]],
+ "L'écrit et l'oral","<ul><li>À l'oral, les mots se collent : <code>going to → gonna</code>, <code>want to → wanna</code>, <code>got to → gotta</code>.</li><li>Utilise-les pour comprendre. À l'écrit, par exemple dans le chat avec un client, garde la forme complète.</li></ul>");
+U("b9",3,"Raconter une histoire","Enchaîner les événements",
+ [["First","D'abord","feurst"],["After that","Après ça","af-teur zat"],["Suddenly","Tout à coup","seu-deunn-li"],["Finally","Finalement","faï-neu-li"],["While","Pendant que","ouaïl"],["During","Pendant","diou-ring"],["At first","Au début","at feurst"],["In the end","À la fin","inn zi ènnd"],["Then","Puis","zènn"],["Story","Histoire","sto-ri"],["Happened","S'est passé","ha-peund"],["Luckily","Heureusement","leu-ki-li"]],
+ [["First, I went to the bank","D'abord, je suis allé à la banque"],["Suddenly, it started to rain","Tout à coup, il s'est mis à pleuvoir"],["Luckily, I had a jacket","Heureusement, j'avais une veste"],["What happened?","Qu'est-ce qui s'est passé ?"]],
+ [["What happened to your phone?","Qu'est-il arrivé à ton téléphone ?","I dropped it while I was driving.","It happens tomorrow.","First, my phone is."],["So, how did it end?","Alors, comment ça s'est fini ?","In the end, everything was fine.","At first, in the end.","It ends a story."]],
+ "Raconter au passé","<ul><li>Pour une action en cours dans le passé : <code>was / were + -ing</code>.</li><li><code>I was driving when it started to rain</code> = je conduisais quand il s'est mis à pleuvoir.</li><li>Le décor en <b>-ing</b>, l'événement au passé simple.</li></ul>");
+U("b10",3,"Faux amis","Les pièges pour les Français",
+ [["Actually","En fait (pas « actuellement »)","ak-tchou-eu-li"],["Currently","Actuellement","keu-reunt-li"],["Eventually","Finalement (pas « éventuellement »)","i-vènn-tchou-eu-li"],["Library","Bibliothèque (pas « librairie »)","laï-breu-ri"],["Bookshop","Librairie","bouk-chop"],["Sensible","Raisonnable (pas « sensible »)","sènn-si-beul"],["Sensitive","Sensible","sènn-si-tiv"],["Deception","Tromperie (pas « déception »)","di-sèp-cheunn"],["Disappointed","Déçu","di-seu-poïn-tid"],["Coin","Pièce de monnaie","koïnn"],["Chips","Frites (UK)","tchips"],["To realize","Se rendre compte","tou ri-eu-laïz"]],
+ [["Actually, I'm French","En fait, je suis français"],["I'm disappointed","Je suis déçu"],["She is very sensitive","Elle est très sensible"],["I don't have any coins","Je n'ai pas de pièces"]],
+ [["Do you live in Paris?","Tu habites à Paris ?","Actually, I live in Cannes.","Currently, actually yes.","Eventually Paris."],["How was the film?","C'était comment, le film ?","I was disappointed. It was boring.","It was a deception.","It was sensible."]],
+ "Les faux amis","<ul><li>Ces mots ressemblent au français mais n'ont pas le même sens.</li><li><code>actually</code> = en fait. Pour « actuellement », dis <code>currently</code> ou <code>at the moment</code>.</li><li>Pour « déçu », dis <code>disappointed</code>.</li></ul>");
+U("b11",3,"Réagir","Montrer que tu suis la conversation",
+ [["That's great!","C'est super !","zats gréït"],["That's too bad","C'est dommage","zats tou bad"],["Sounds good","Ça me va","saoundz goud"],["I see","Je vois","aï sii"],["Oh really?","Ah bon ?","o-ou ri-li"],["Lucky you!","Veinard !","leu-ki iou"],["What a pity","Quel dommage","ouat eu pi-ti"],["I'm sorry to hear that","Désolé d'apprendre ça","aïm so-ri tou hir zat"],["Congratulations!","Félicitations !","keunn-gra-tchou-léï-cheunz"],["Me too","Moi aussi","mi tou"],["Me neither","Moi non plus","mi naï-zeur"],["Good for you","Tant mieux pour toi","goud for iou"]],
+ [["Sounds good to me","Ça me va"],["I'm sorry to hear that","Je suis désolé d'apprendre ça"],["Oh really? Tell me more","Ah bon ? Raconte"],["That's great, good for you","C'est super, tant mieux pour toi"]],
+ [["I'm going to Bali next month!","Je pars à Bali le mois prochain !","Lucky you! That's great!","I'm sorry to hear that.","Me neither."],["I lost my job yesterday.","J'ai perdu mon travail hier.","Oh no, I'm sorry to hear that.","Congratulations!","Sounds good!"],["I don't like Mondays.","Je n'aime pas les lundis.","Me neither!","Me too!","Lucky you!"]],
+ "Moi aussi, moi non plus","<ul><li>Après une phrase positive : <code>Me too</code>. « I love pizza » → « Me too! »</li><li>Après une phrase négative : <code>Me neither</code>. « I don't like rain » → « Me neither! »</li></ul>");
+U("b12",3,"Argent et services","Banque, loyer, factures",
+ [["Bank","Banque","bannk"],["Rent","Loyer","rènnt"],["Bill","Facture","bil"],["To save","Économiser","tou séïv"],["To spend","Dépenser","tou spènnd"],["To borrow","Emprunter","tou bo-ro-ou"],["To lend","Prêter","tou lènnd"],["Cash machine","Distributeur","kach meu-chiin"],["Account","Compte","eu-kaount"],["Tip","Pourboire","tip"],["To afford","Avoir les moyens","tou eu-ford"],["Worth it","Ça vaut le coup","oueurth it"]],
+ [["Can you lend me ten euros?","Tu peux me prêter dix euros ?"],["I can't afford it","Je n'ai pas les moyens"],["Where is the cash machine?","Où est le distributeur ?"],["It's expensive but it's worth it","C'est cher mais ça vaut le coup"]],
+ [["Here is a tip for you.","Voici un pourboire pour vous.","That's very kind, thank you!","I can't afford it.","Can you lend me?"],["Do you want to buy this car?","Tu veux acheter cette voiture ?","I'd love to, but I can't afford it.","Yes, I lend it.","I save a car."]],
+ "Borrow ou lend ?","<ul><li><code>borrow</code> = emprunter (tu prends) : <code>Can I borrow your pen?</code></li><li><code>lend</code> = prêter (tu donnes) : <code>Can you lend me your pen?</code></li></ul>");
+const LEVELS=[{n:1,t:"Niveau 1 · Débutant",c:"A1",d:"Les bases pour te débrouiller"},{n:2,t:"Niveau 2 · Élémentaire",c:"A2",d:"Raconter, comparer, discuter"},{n:3,t:"Niveau 3 · Intermédiaire",c:"B1",d:"Parler naturellement, comme un natif"}];
+const RANKS=[[0,"Débutant"],[100,"Curieux"],[300,"Apprenti"],[700,"Voyageur"],[1500,"Bavard"],[3000,"Aventurier"],[6000,"Presque bilingue"],[10000,"Bilingue (ou presque)"]];
+
 UNITS.forEach(u=>u.items.forEach((it,i)=>{it.key=u.id+"-"+i; it.unit=u.id;}));
 const ALL = UNITS.flatMap(u=>u.items);
 const BYKEY = Object.fromEntries(ALL.map(it=>[it.key,it]));
@@ -288,14 +478,14 @@ const dueList=()=>Object.entries(S.cards).filter(([k,c])=>BYKEY[k]&&c.d<=Date.no
 const DAYS=[0,0.4,2,4,9,21];
 
 /* ---------------- Transfert entre versions ---------------- */
-function exportCode(){const j=JSON.stringify({x:S.xp,g:S.goal,d:S.days,u:S.units,c:S.cards,t:S.updated});return "EGO1:"+btoa(unescape(encodeURIComponent(j)));}
+function exportCode(){const j=JSON.stringify({x:S.xp,g:S.goal,d:S.days,u:S.units,c:S.cards,t:S.updated,b:S.best||0});return "EGO1:"+btoa(unescape(encodeURIComponent(j)));}
 function importCode(txt){
   const m=String(txt||"").replace(/\s+/g,"").match(/EGO1:([A-Za-z0-9+/=]+)/);
   if(!m)return "Code introuvable. Il doit commencer par EGO1: — copie-le en entier.";
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));}catch(e){return "Ce code est abîmé. Recopie-le en entier depuis l'autre version.";}
   if(!o||typeof o!=="object"||!o.c)return "Ce code ne contient pas de progression.";
   const before=Object.keys(S.cards).length;
-  S.xp=Math.max(S.xp||0,o.x||0);
+  S.xp=Math.max(S.xp||0,o.x||0);S.best=Math.max(S.best||0,o.b||0);
   if(o.t>(S.updated||0)&&o.g)S.goal=o.g;
   Object.entries(o.d||{}).forEach(([k,v])=>{S.days[k]=Math.max(S.days[k]||0,+v||0);});
   Object.entries(o.u||{}).forEach(([k,v])=>{const a=S.units[k]||{lessons:0};S.units[k]={lessons:Math.max(a.lessons||0,(v&&v.lessons)||0)};});
@@ -343,6 +533,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(
 /* ---------------- Écrans principaux ---------------- */
 let tab="home", query="", confirmReset=false;
 function render(){
+  if(G){renderGame();return;}
   if(L){renderLesson();return;}
   const root=$("#root");
   const body= tab==="home"?homeView(): tab==="job"?jobView(): tab==="words"?wordsView(): guideView();
@@ -355,9 +546,12 @@ function render(){
 }
 function header(){return `<header class="top"><div class="brand">English<span>Go</span></div>
  <div class="chips"><span class="chip fire" title="Jours d'affilée">${IC.fire}${streak()}</span><span class="chip" style="color:var(--gold)" title="Points d'expérience">${IC.star}${S.xp}</span></div></header>`;}
-function nextUnitIndex(){const order=UNITS.map((u,i)=>i).sort((a,b)=>(UNITS[a].track==="job"?0:1)-(UNITS[b].track==="job"?0:1));
+const DISPLAY=UNITS.filter(u=>!u.track).concat(UNITS.filter(u=>u.track==="job"));
+function grpHead(u,get,set){const g=u.track==="job"?"Bonus coursier":LEVELS[u.lvl-1].t;if(g===get())return "";set(g);return `<h2 class="grp">${esc(g)}</h2>`;}
+function rankInfo(){let i=0;RANKS.forEach((r,j)=>{if(S.xp>=r[0])i=j;});const cur=RANKS[i],nx=RANKS[i+1];return {name:cur[1],next:nx,pct:nx?(S.xp-cur[0])/(nx[0]-cur[0])*100:100};}
+function nextUnitIndex(){const order=UNITS.map((u,i)=>i).sort((a,b)=>(UNITS[a].track==="job"?1:0)-(UNITS[b].track==="job"?1:0));
  for(const i of order){if(unitUnlocked(i)&&!unitDone(UNITS[i]))return i;}return 0;}
-function unitList(track){return UNITS.map((u,i)=>[u,i]).filter(([u])=>(u.track||"base")===track).map(([u,i])=>{const s=unitSeen(u),lk=!unitUnlocked(i),dn=unitDone(u);
+function unitList(f){return UNITS.map((u,i)=>[u,i]).filter(([u])=>f(u)).map(([u,i])=>{const s=unitSeen(u),lk=!unitUnlocked(i),dn=unitDone(u);
    return `<button class="unit ${lk?"locked":""} ${dn?"done":""} ${u.track==="job"?"job":""}" data-unit="${i}">
    <span class="num">${lk?IC.lock:unitLabel(u)}</span><span class="sp"><h3>${esc(u.title)}</h3><p>${dn?"Terminée":esc(u.sub)}</p>
    <span class="bar" style="display:block"><i style="width:${s/u.items.length*100}%"></i></span></span></button>`;}).join("");}
@@ -369,23 +563,29 @@ function homeView(){
   <section class="card"><div class="goal-row"><span class="label">Objectif du jour</span><b>${Math.min(tx,g)} / ${g} XP</b></div>
    <div class="bar gold"><i style="width:${Math.min(100,tx/g*100)}%"></i></div>
    <span class="small muted">${tx>=g?"Objectif atteint. Bravo, reviens demain pour garder ta série !":"Une leçon rapporte environ 25 XP. Compte 3 à 4 minutes."}</span></section>
+  ${(()=>{const r=rankInfo();return `<section class="card"><div class="goal-row"><span class="label">Ton rang</span><b>${esc(r.name)}</b></div><div class="bar"><i style="width:${r.pct}%"></i></div>
+   <span class="small muted">${r.next?`Encore ${r.next[0]-S.xp} XP pour devenir « ${esc(r.next[1])} »`:"Rang maximum atteint. Respect !"}</span></section>`;})()}
   <section class="card hero"><span class="label">${first?"Commence ici":"Ta prochaine leçon"} · ${unitName(nu)}</span>
    <h2>${esc(nu.title)}</h2><p>${esc(nu.sub)} · ${unitSeen(nu)}/${nu.items.length} mots vus</p>
    <button class="btn light" data-start="${nu.id}">${first?"Commencer ma première leçon":"Continuer"}</button></section>
   ${totalSeen?`<section class="card"><div class="row"><div class="sp"><span class="label">Révision intelligente</span><h3 style="margin-top:4px">${due?due+" mot"+(due>1?"s":"")+" à revoir":"Tout est à jour"}</h3>
    <span class="small muted">${due?"Revois-les avant de les oublier.":"Les mots reviendront au bon moment."}</span></div></div>
    <button class="btn ${due?"":"ghost"}" data-review="1">${due?"Réviser maintenant":"Révision libre"}</button></section>`:""}
+  <section class="card"><span class="label">Défi 60 secondes</span><h3>Combien de mots en une minute ?</h3>
+   <span class="small muted">Record : ${S.best||0} · 1 bonne réponse = 1 XP · une erreur coûte 3 secondes</span>
+   <button class="btn ghost" data-game="1">Lancer le défi</button></section>
   <section class="card"><span class="label">Phrase du jour</span>
    <div class="row">${audioBtn(sent[0])}<div class="sp"><div class="pod">${esc(sent[0])}</div><div class="fr">${esc(sent[1])}</div></div></div></section>
-  <section style="display:flex;flex-direction:column;gap:10px"><h2 style="font-size:1.3rem">Spécial coursier</h2>
-   <p class="small muted" style="margin:-4px 0 0">Les phrases pour tes livraisons à Cannes.</p><div class="units">${unitList("job")}</div></section>
-  <section style="display:flex;flex-direction:column;gap:10px"><h2 style="font-size:1.3rem">Les bases</h2><div class="units">${unitList("base")}</div></section>`;
+  ${LEVELS.map(lv=>{const us=UNITS.filter(u=>u.lvl===lv.n),dn=us.filter(unitDone).length,open=unitUnlocked(UNITS.indexOf(us[0]));
+   return `<section class="lvl"><div><span class="label">${lv.c} · ${dn}/${us.length} unités terminées</span><h2>${esc(lv.t)}</h2><p class="small muted">${esc(lv.d)}</p></div>
+   ${open?`<div class="units">${unitList(u=>u.lvl===lv.n)}</div>`:`<div class="card locked-lvl">${IC.lock}<span>${us.length} unités · se débloque en avançant dans le niveau ${lv.n-1}</span></div>`}</section>`;}).join("")}
+  <section class="lvl"><div><span class="label">Bonus</span><h2>Spécial coursier</h2><p class="small muted">Les phrases pour tes livraisons à Cannes.</p></div><div class="units">${unitList(u=>u.track==="job")}</div></section>`;
 }
 function wordsView(){
   const q=norm(query);
-  const groups=UNITS.map((u,i)=>{const its=u.items.filter(it=>!q||norm(it[0]).includes(q)||norm(it[1]).includes(q));
+  let lastG="";const groups=DISPLAY.map(u=>{const its=u.items.filter(it=>!q||norm(it[0]).includes(q)||norm(it[1]).includes(q));
    if(!its.length)return "";
-   return `<div class="card vgroup"><h3>${unitLabel(u)}. ${esc(u.title)}</h3>${its.map(it=>{const c=S.cards[it.key];const b=c?c.b:0;
+   return grpHead(u,()=>lastG,v=>lastG=v)+`<div class="card vgroup"><h3>${unitLabel(u)}. ${esc(u.title)}</h3>${its.map(it=>{const c=S.cards[it.key];const b=c?c.b:0;
     return `<div class="vitem">${audioBtn(it[0])}<div class="sp"><b>${esc(it[0])}</b><small>${esc(it[1])} · <span class="pr">≈ ${esc(it[2])}</span></small></div>
     <span class="dots" title="${c?"Niveau "+b+" sur 5":"Pas encore vu"}">${[1,2,3,4,5].map(n=>`<i class="${n<=b?"on":""}"></i>`).join("")}</span></div>`;}).join("")}</div>`;}).join("");
   return `${header()}<h1 style="font-size:1.6rem">Mes mots</h1>
@@ -435,7 +635,7 @@ function guideView(){
    <li><code>h</code> : il se prononce, comme un souffle (hello, hotel).</li>
    <li><code>ee</code> / <code>ea</code> : un « i » long (tea, meet).</li></ul></section>
   <h2 style="font-size:1.3rem">Grammaire express</h2>
-  ${UNITS.map((u,i)=>{const open=unitUnlocked(i);return `<section class="card tip" ${open?"":'style="opacity:.55"'}><span class="label">${unitName(u)} · ${esc(u.title)}</span><h3>${esc(u.tip.t)}</h3>${open?u.tip.b:'<p class="muted">Se débloque avec l\'unité.</p>'}</section>`;}).join("")}
+  ${(()=>{let lastG="";return DISPLAY.map(u=>{const i=UNITS.indexOf(u),open=unitUnlocked(i);return grpHead(u,()=>lastG,v=>lastG=v)+`<section class="card tip" ${open?"":'style="opacity:.55"'}><span class="label">${unitName(u)} · ${esc(u.title)}</span><h3>${esc(u.tip.t)}</h3>${open?u.tip.b:'<p class="muted">Se débloque avec l\'unité.</p>'}</section>`;}).join("");})()}
   <section class="card" id="transfer"><span class="label">Transférer ma progression</span>
    <h3 style="font-size:1.1rem">Passer de Claude au site, ou l'inverse</h3>
    <ol class="small" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">
@@ -453,6 +653,7 @@ function guideView(){
 function bindView(){
   document.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startUnit(b.dataset.start));
   document.querySelectorAll("[data-review]").forEach(b=>b.onclick=startReview);
+  document.querySelectorAll("[data-game]").forEach(b=>b.onclick=startGame);
   document.querySelectorAll("[data-unit]").forEach(b=>b.onclick=()=>{const i=+b.dataset.unit;
     if(!unitUnlocked(i)){toast("Vois la moitié des mots de « "+prevUnit(i).title+" » pour débloquer.");return;}startUnit(UNITS[i].id);});
   const q=$("#q");if(q)q.oninput=()=>{query=q.value;const pos=q.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}};
@@ -482,6 +683,7 @@ function startUnit(uid){
   fresh.forEach(it=>{steps.push({t:"intro",key:it.key});steps.push({t:"en2fr",key:it.key});});
   const round2=shuffle(fresh.concat(pool)).map(it=>qFor(it.key,seen(it.key)?S.cards[it.key].b:1));
   steps.push(...round2);
+  if(u.dlg.length)steps.push({t:"dialog",d:pick(u.dlg)});
   const sents=shuffle(u.sent).slice(0,2).map(s=>({t:"build",s,unit:u}));
   steps.push(...sents);
   openLesson({kind:"unit",unit:u,steps,title:u.title});
@@ -493,6 +695,7 @@ function startReview(){
   const steps=shuffle(keys).map(k=>qFor(k,S.cards[k].b));
   const withSent=UNITS.filter(u=>unitSeen(u)>0);
   if(withSent.length)steps.push({t:"build",s:pick(pick(withSent).sent),unit:pick(withSent)});
+  const wd=withSent.filter(u=>u.dlg.length);if(wd.length)steps.push({t:"dialog",d:pick(pick(wd).dlg)});
   openLesson({kind:"review",steps,title:"Révision"});
 }
 function openLesson(o){L=Object.assign(o,{i:0,done:0,correct:0,wrong:0,results:{},state:"ask",sel:null,built:[],total:o.steps.length});document.body.style.overflow="hidden";render();autoAudio();}
@@ -509,9 +712,10 @@ function renderLesson(){
   if(s.t==="build"&&!s.tiles){const words=s.s[0].replace(/[?,.!]/g,"").split(" ");
     const extra=shuffle(s.unit.sent.flatMap(x=>x[0].replace(/[?,.!]/g,"").split(" ")).filter(w=>!words.map(norm).includes(norm(w)))).slice(0,3);
     s.tiles=shuffle([...words,...new Set(extra)]).map((w,i)=>({w,i}));}
+  if(s.t==="dialog"&&!s.opts)s.opts=shuffle([s.d[2],s.d[3],s.d[4]]);
   const pct=L.done/L.total*100;
   root.innerHTML=`<div class="sheet" role="dialog" aria-label="Leçon"><div class="sheet-in">
-   <div class="lhead"><button class="close" id="quit" aria-label="Quitter la leçon">${IC.x}</button><div class="bar"><i style="width:${pct}%"></i></div></div>
+   <div class="lhead"><button class="close" id="quit" aria-label="Quitter la leçon">${IC.x}</button><div class="bar"><i style="width:${pct}%"></i></div>${L.combo>=2?`<span class="chip fire" title="Combo">${IC.fire}x${L.combo}</span>`:""}</div>
    <div class="stage" id="stage">${stageHTML(s)}</div>
    <div class="lfoot" id="foot">${footHTML(s)}</div></div></div>`;
   bindLesson(s);
@@ -522,8 +726,9 @@ function stageHTML(s){
     ${audioBtn(it[0],"big")}<div class="w">${esc(it[0])}</div><div class="t">${esc(it[1])}</div><div class="pr">≈ ${esc(it[2])}</div>
     <button class="slow" data-say="${esc(it[0])}" data-slow="1">Écouter lentement</button></div>
     <p class="muted small" style="text-align:center;margin:0">Écoute, puis répète-le à voix haute.</p>`;
-  const optsHTML=s.opts?`<div class="opts">${s.opts.map((o,i)=>{let cls="";if(L.state!=="ask"){const right=s.t==="en2fr"?it[1]:it[0];if(o===right)cls="right";else if(i===L.sel)cls="wrong";}
+  const optsHTML=s.opts?`<div class="opts">${s.opts.map((o,i)=>{let cls="";if(L.state!=="ask"){const right=rightOf(s);if(o===right)cls="right";else if(i===L.sel)cls="wrong";}
     return `<button class="opt ${cls}" data-opt="${i}" aria-pressed="${L.sel===i}" ${L.state!=="ask"?"disabled":""}>${esc(o)}</button>`;}).join("")}</div>`:"";
+  if(s.t==="dialog")return `<h2 class="q-title">Que réponds-tu ?</h2><div class="bubble">${audioBtn(s.d[0])}<div class="sp"><b>${esc(s.d[0])}</b>${(L.showFr||L.state!=="ask")?`<small>${esc(s.d[1])}</small>`:`<button class="slow" id="trad">Voir la traduction</button>`}</div></div>${optsHTML}`;
   if(s.t==="en2fr")return `<h2 class="q-title">Que veut dire ce mot ?</h2><div class="prompt">${audioBtn(it[0])}<div class="big">${esc(it[0])}</div></div>${optsHTML}`;
   if(s.t==="fr2en")return `<h2 class="q-title">Comment dit-on en anglais ?</h2><div class="prompt"><div class="big">${esc(it[1])}</div></div>${optsHTML}`;
   if(s.t==="listen")return `<h2 class="q-title">Qu'entends-tu ?</h2><div style="display:flex;flex-direction:column;align-items:center;gap:4px">${audioBtn(it[0],"big")}<button class="slow" data-say="${esc(it[0])}" data-slow="1">Écouter lentement</button></div>${optsHTML}`;
@@ -538,42 +743,44 @@ function canCheck(s){if(s.t==="intro")return true;if(s.opts)return L.sel!==null;
 function footHTML(s){
   if(L.state==="ask")return `<button class="btn" id="go" ${canCheck(s)?"":"disabled"}>${s.t==="intro"?"J'ai compris":"Vérifier"}</button>`;
   const ok=L.state==="ok";const ans=answerText(s);
-  return `<div class="fb ${ok?"ok":"bad"}" role="status">${ok?(L.almost?"Presque parfait !":pick(["Excellent !","Bravo !","Parfait !","Bien joué !"])):"Pas tout à fait."}${(!ok||L.almost)?`<span>Bonne réponse : <b>${esc(ans)}</b></span>`:""}</div>
+  return `<div class="fb ${ok?"ok":"bad"}" role="status">${ok?(L.almost?"Presque parfait !":pick(["Excellent !","Bravo !","Parfait !","Bien joué !"]))+(L.combo>=3?` <em class="combo">Combo x${L.combo} · +1 XP</em>`:""):"Pas tout à fait."}${(!ok||L.almost)?`<span>Bonne réponse : <b>${esc(ans)}</b></span>`:""}</div>
    <button class="btn ${ok?"ok":"bad"}" id="go">Continuer</button>`;
 }
-function answerText(s){const it=BYKEY[s.key];if(s.t==="build")return s.s[0];if(s.t==="en2fr")return it[1];return it[0];}
+function rightOf(s){if(s.t==="dialog")return s.d[2];const it=BYKEY[s.key];return s.t==="en2fr"?it[1]:it[0];}
+function answerText(s){if(s.t==="dialog")return s.d[2];const it=BYKEY[s.key];if(s.t==="build")return s.s[0];if(s.t==="en2fr")return it[1];return it[0];}
 function bindLesson(s){
   $("#quit").onclick=()=>{L=null;document.body.style.overflow="";if(window.speechSynthesis)speechSynthesis.cancel();render();};
   document.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{L.sel=+b.dataset.opt;if(s.t!=="en2fr")say(s.opts[L.sel]);renderLesson();});
   document.querySelectorAll("[data-tile]").forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;if(!L.built.includes(i)){L.built.push(i);say(s.tiles[i].w);renderLesson();}});
   document.querySelectorAll("[data-un]").forEach(b=>b.onclick=()=>{L.built.splice(+b.dataset.un,1);renderLesson();});
   const ti=$("#typein");if(ti){ti.oninput=()=>{L.typed=ti.value;$("#go").disabled=!canCheck(s);};ti.onkeydown=e=>{if(e.key==="Enter"&&canCheck(s)){e.preventDefault();$("#go").click();}};if(L.state==="ask")setTimeout(()=>ti.focus(),50);}
+  const tr=$("#trad");if(tr)tr.onclick=()=>{L.showFr=true;renderLesson();};
   $("#go").onclick=()=>{if(L.state==="ask")check(s);else advance();};
 }
 function check(s){
   if(s.t==="intro"){L.done++;nextStep();return;}
   const it=BYKEY[s.key];let ok=false;L.almost=false;
-  if(s.opts){const right=s.t==="en2fr"?it[1]:it[0];ok=s.opts[L.sel]===right;}
+  if(s.opts){ok=s.opts[L.sel]===rightOf(s);}
   else if(s.t==="type"){const a=norm(L.typed),b=norm(it[0]);ok=a===b;if(!ok&&b.length>4&&lev(a,b)<=1){ok=true;L.almost=true;}}
   else if(s.t==="build"){ok=norm(L.built.map(i=>s.tiles[i].w).join(" "))===norm(s.s[0]);}
   L.state=ok?"ok":"bad";
   if(s.key){if(L.results[s.key]===undefined)L.results[s.key]=true;if(!ok)L.results[s.key]=false;}
-  if(ok){L.correct++;L.done++;}else{L.wrong++;if(!s.retry){const c=Object.assign({},s,{retry:true,opts:null,tiles:null});L.steps.push(c);}else L.done++;}
-  say(s.t==="build"?s.s[0]:it[0]);
+  if(ok){L.correct++;L.done++;L.combo=(L.combo||0)+1;if(L.combo>=3)L.bonus=(L.bonus||0)+1;}else{L.combo=0;L.wrong++;if(!s.retry){const c=Object.assign({},s,{retry:true,opts:null,tiles:null});L.steps.push(c);}else L.done++;}
+  say(s.t==="build"?s.s[0]:s.t==="dialog"?s.d[2]:it[0]);
   renderLesson();
 }
 function advance(){nextStep();}
 function nextStep(){
-  L.i++;L.sel=null;L.typed="";L.built=[];L.state="ask";L.almost=false;
+  L.i++;L.showFr=false;L.sel=null;L.typed="";L.built=[];L.state="ask";L.almost=false;
   if(L.i>=L.steps.length){finish();return;}
   renderLesson();autoAudio();
 }
-function autoAudio(){const s=step();if(!s)return;if(s.t==="intro"||s.t==="listen"||s.t==="en2fr")say(BYKEY[s.key][0]);}
+function autoAudio(){const s=step();if(!s)return;if(s.t==="intro"||s.t==="listen"||s.t==="en2fr")say(BYKEY[s.key][0]);else if(s.t==="dialog")say(s.d[0]);}
 function finish(){
   const now=Date.now();
   Object.entries(L.results).forEach(([k,ok])=>{const c=S.cards[k];let b=c?(ok?Math.min(5,c.b+1):1):(ok?2:1);S.cards[k]={b,d:now+DAYS[b]*864e5};});
   L.steps.forEach(st=>{if(st.t==="intro"&&!S.cards[st.key])S.cards[st.key]={b:1,d:now+DAYS[1]*864e5};});
-  const gained=L.correct*2+(L.kind==="unit"?10:5)+(L.wrong===0?5:0);
+  const gained=L.correct*2+(L.kind==="unit"?10:5)+(L.wrong===0?5:0)+(L.bonus||0);
   L.gained=gained;S.xp+=gained;const dk=dayKey();S.days[dk]=(S.days[dk]||0)+gained;
   if(L.kind==="unit"){const u=S.units[L.unit.id]||{lessons:0};u.lessons++;S.units[L.unit.id]=u;}
   save();L.state="end";L.done=L.total;renderLesson();
@@ -592,6 +799,31 @@ function endView(){
 function bindEnd(){
   $("#home").onclick=()=>{L=null;document.body.style.overflow="";tab="home";render();scrollTo(0,0);};
   $("#again").onclick=()=>{const k=L.kind;L=null;if(k==="unit"){startUnit(UNITS[nextUnitIndex()].id);}else startReview();};
+}
+
+/* ---------------- Défi 60 secondes ---------------- */
+let G=null;
+function gamePool(){let p=ALL.filter(it=>seen(it.key));if(p.length<8)p=UNITS[0].items.concat(UNITS[1].items);return p;}
+function startGame(){if(G)clearInterval(G.iv);G={score:0,end:Date.now()+60000,pool:gamePool(),over:false,flash:""};nextGameQ();G.iv=setInterval(tickGame,200);document.body.style.overflow="hidden";render();}
+function nextGameQ(){const it=pick(G.pool),f=Math.random()<.5?1:0;const others=[...new Set(shuffle(G.pool).map(x=>x[f]).filter(v=>v!==it[f]))].slice(0,3);G.q={it,f,opts:shuffle([it[f],...others]),ans:it[f],sel:null};}
+function tickGame(){if(!G||G.over)return;const left=G.end-Date.now();if(left<=0){endGame();return;}const b=$("#gbar");if(b)b.style.width=(left/600)+"%";const t=$("#gtime");if(t)t.textContent=Math.ceil(left/1000)+" s";}
+function endGame(){G.over=true;clearInterval(G.iv);G.record=G.score>(S.best||0);if(G.record)S.best=G.score;if(G.score){S.xp+=G.score;const dk=dayKey();S.days[dk]=(S.days[dk]||0)+G.score;save();}render();}
+function closeGame(){if(G)clearInterval(G.iv);G=null;document.body.style.overflow="";render();}
+function renderGame(){const root=$("#root");
+ if(G.over){root.innerHTML=`<div class="sheet"><div class="sheet-in"><div class="stage end"><span class="label">Défi 60 secondes</span><div class="xp">${G.score}</div>
+   <h2 style="font-size:1.6rem">${G.record?"Nouveau record !":G.score?"bonnes réponses":"Retente ta chance !"}</h2><p class="muted" style="margin:0">Record : ${S.best||0} · +${G.score} XP</p></div>
+   <div class="lfoot"><button class="btn" id="gAgain">Rejouer</button><button class="btn ghost" id="gHome">Retour au parcours</button></div></div></div>`;
+  $("#gAgain").onclick=startGame;$("#gHome").onclick=closeGame;return;}
+ const q=G.q,left=Math.max(0,G.end-Date.now());
+ root.innerHTML=`<div class="sheet" role="dialog" aria-label="Défi 60 secondes"><div class="sheet-in"><div class="lhead"><button class="close" id="gQuit" aria-label="Quitter le défi">${IC.x}</button><div class="bar gold"><i id="gbar" style="width:${left/600}%;transition:width .2s linear"></i></div><span class="chip" id="gtime">${Math.ceil(left/1000)} s</span></div>
+  <div class="stage"><div class="row"><span class="label sp">${q.f===1?"Que veut dire…":"Comment dit-on en anglais…"}</span><span class="chip" style="color:var(--gold)">${IC.star}${G.score}</span></div>
+  <div class="prompt gq ${G.flash}"><div class="big">${esc(q.f===1?q.it[0]:q.it[1])}</div></div>
+  <div class="opts">${q.opts.map((o,i)=>{let c="";if(q.sel!==null){if(o===q.ans)c="right";else if(i===q.sel)c="wrong";}return `<button class="opt ${c}" data-g="${i}" ${q.sel!==null?"disabled":""}>${esc(o)}</button>`;}).join("")}</div>
+  ${G.flash==="bad"?'<p class="small" style="color:var(--bad);margin:0;text-align:center;font-weight:700">−3 secondes</p>':""}</div></div></div>`;
+ $("#gQuit").onclick=closeGame;
+ root.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{if(G.q.sel!==null)return;const i=+b.dataset.g;G.q.sel=i;const ok=G.q.opts[i]===G.q.ans;
+  if(ok){G.score++;G.flash="ok";}else{G.end-=3000;G.flash="bad";}
+  renderGame();setTimeout(()=>{if(!G||G.over)return;G.flash="";nextGameQ();renderGame();},ok?250:900);});
 }
 
 /* ---------------- Sauvegarde sur le compte ---------------- */
