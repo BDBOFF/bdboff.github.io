@@ -266,7 +266,8 @@ const countAll=()=>Object.keys(S.m).reduce((n,k)=>n+countMonth(k),0);
 const route=c=>(c.f||"?")+" → "+(c.t||"?");
 
 function freq(fields){const m=new Map();allList().forEach(c=>fields.forEach(f=>{const v=c[f];if(!v)return;const k=norm(v);const e=m.get(k)||{v,n:0};e.n++;m.set(k,e);}));return [...m.values()].sort((a,b)=>b.n-a.n).map(e=>e.v);}
-function canon(v,fields){const n=norm(v);if(!n)return "";for(const c of allList())for(const f of fields)if(norm(c[f])===n)return c[f];return titleWords(v);}
+function canon(v,fields){const n=norm(v);if(!n)return "";for(const c of allList())for(const f of fields)if(norm(c[f])===n)return c[f];return capf(String(v).trim().replace(/\s+/g," "));}
+function renameClientAll(key,name){const now=Date.now();let n=0;for(const k in S.m){let ch=false;for(const id in S.m[k].c){const c=S.m[k].c[id];if(norm(c.c)===key&&c.c!==name){c.c=name;c.u=now;n++;ch=true;}}if(ch)touch(k);}return n;}
 function combos(){const m=new Map();allList().forEach(c=>{const k=norm(c.f)+"|"+norm(c.t)+"|"+norm(c.c);const e=m.get(k)||{f:c.f,t:c.t,c:c.c,n:0};e.n++;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n).slice(0,8);}
 function lastPrice(f,t,c){let best=null,bk=-1;allList().forEach(x=>{if(x.p!=null&&norm(x.f)===norm(f)&&norm(x.t)===norm(t)&&norm(x.c)===norm(c)&&x.k>bk){best=x.p;bk=x.k;}});return best;}
 
@@ -319,7 +320,11 @@ async function importCode(txt){
   }catch(e){return [false,"Ce code est abîmé. Recopie-le en entier depuis l'autre version."];}
   if(!o||typeof o.m!=="object")return [false,"Ce code ne contient pas de courses."];
   const before=countAll();
-  for(const k in o.m){if(!/^\d{4}-\d{2}$/.test(k))continue;S.m[k]=mergeMonth(S.m[k]||blankMonth(),o.m[k],k);dirty.add(k);}
+  for(const k in o.m){if(!/^\d{4}-\d{2}$/.test(k)||!o.m[k]||typeof o.m[k]!=="object")continue;
+    const inc=Object.assign({},o.m[k]),ic=Object.assign({},inc.c||{}),loc=S.m[k]||blankMonth();
+    const pool=new Map();for(const id in loc.c){if(ic[id])continue;const kk=ckey(loc.c[id]);pool.set(kk,(pool.get(kk)||0)+1);}
+    for(const id in ic){const c=ic[id];if(loc.c[id]||!okCourse(c,k))continue;const kk=ckey(c);const n=pool.get(kk)||0;if(n>0){pool.set(kk,n-1);delete ic[id];}}
+    inc.c=ic;S.m[k]=mergeMonth(loc,inc,k);dirty.add(k);}
   persist();queueRemote();
   const add=countAll()-before;
   return [true,"Données chargées : "+(add>0?plural(add,"course")+" ajoutée"+(add>1?"s":""):"rien de nouveau")+". Total : "+plural(countAll(),"course")+"."];
@@ -351,6 +356,48 @@ function canonPlace(v){
   const n=norm(t);if(!n)return "";
   for(const c of allList())for(const f of ["f","t"])if(norm(c[f])===n)return c[f];
   const pm=placeMap().get(n);return pm||titleWords(t);
+}
+
+/* ============ Code court (CRS3) : copie exacte d'une période ============ */
+const ckey=c=>norm(c.d)+"|"+norm(c.f)+"|"+norm(c.t)+"|"+norm(c.c)+"|"+norm(c.n);
+async function gzB(bytes){const st=new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));return new Uint8Array(await new Response(st).arrayBuffer());}
+async function gunzB(bytes){const st=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));return new Uint8Array(await new Response(st).arrayBuffer());}
+function periodRange(kind){const t=today();
+  if(kind==="week")return [addDays(t,-6),t];
+  if(kind==="month")return [mkey(t)+"-01",addDays(addMonths(mkey(t),1)+"-01",-1)];
+  const all=allList();return [all.length?all[0].d:t,"9999-12-31"];}
+async function exportShort(kind){
+  const [a,b]=periodRange(kind);const rows=allList().filter(c=>c.d>=a&&c.d<=b);
+  const P=[],C=[],pm=new Map(),cm=new Map();const ix=(arr,m,v)=>{if(!m.has(v)){m.set(v,arr.length);arr.push(v);}return m.get(v);};
+  const base=parseD(a);
+  const d=rows.map(c=>{const r=[Math.round((parseD(c.d)-base)/864e5),ix(P,pm,c.f),ix(P,pm,c.t),ix(C,cm,c.c)];if(c.n||c.p!=null)r.push(c.n||0);if(c.p!=null)r.push(c.p);return r;});
+  const m={};for(const k in S.m)if(k>=mkey(a)&&k<=mkey(b)&&S.m[k].iu){const x=S.m[k];m[k]=[x.dir,x.fac,x.st,x.mn,x.iu];}
+  const bytes=new TextEncoder().encode(JSON.stringify({v:3,a,b,P,C,d,m}));
+  const out=window.CompressionStream?await gzB(bytes):bytes;
+  return {code:(window.CompressionStream?"CRS3:":"CRS3T:")+b64(out),n:rows.length,a,b};
+}
+async function readShort(txt){
+  const m=String(txt||"").replace(/\s+/g,"").match(/CRS3(T?):([A-Za-z0-9+/=]+)/);if(!m)return null;
+  let o;try{let bytes=unb64(m[2]);if(!m[1]){if(!window.DecompressionStream)return {err:"Ce téléphone est trop ancien pour lire ce code. Mets iOS à jour."};bytes=await gunzB(bytes);}o=JSON.parse(new TextDecoder().decode(bytes));}
+  catch(e){return {err:"Ce code est abîmé. Recopie-le en entier depuis l'autre version."};}
+  if(!o||o.v!==3||!Array.isArray(o.d)||!/^\d{4}-\d{2}-\d{2}$/.test(o.a||"")||!/^\d{4}-\d{2}-\d{2}$/.test(o.b||""))return {err:"Ce code ne contient pas de courses."};
+  const P=Array.isArray(o.P)?o.P:[],C=Array.isArray(o.C)?o.C:[];const s=v=>String(v??"").slice(0,80);
+  const inc=o.d.filter(r=>Array.isArray(r)&&r.length>=4).map(r=>({d:addDays(o.a,+r[0]||0),f:s(P[r[1]]),t:s(P[r[2]]),c:s(C[r[3]]),n:typeof r[4]==="string"?r[4].slice(0,200):"",p:numOrNull(r[5])})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.d));
+  const ex=allList().filter(c=>c.d>=o.a&&c.d<=o.b);
+  const pool=new Map();ex.forEach(c=>{const k=ckey(c);if(!pool.has(k))pool.set(k,[]);pool.get(k).push(c);});
+  const add=[],keep=[];inc.forEach((x,i)=>{const l=pool.get(ckey(x));if(l&&l.length)keep.push([l.shift(),x]);else add.push([x,i]);});
+  const del=[];pool.forEach(l=>del.push(...l));
+  return {o,inc,ex,add,keep,del};
+}
+const shortDiff=(c,x)=>(c.p??null)!==(x.p??null)||c.f!==x.f||c.t!==x.t||c.c!==x.c||(c.n||"")!==(x.n||"");
+function applyShort(r){
+  const now=Date.now(),ks=new Set();
+  r.keep.forEach(([c,x])=>{if(shortDiff(c,x)){const t=S.m[c.mk].c[c.id];Object.assign(t,{f:x.f,t:x.t,c:x.c,n:x.n,p:x.p,u:now});ks.add(c.mk);}});
+  r.del.forEach(c=>{delete S.m[c.mk].c[c.id];S.m[c.mk].x[c.id]=now;ks.add(c.mk);});
+  r.add.forEach(([x,i])=>{const k=mkey(x.d);const id="t"+hash(ckey(x)+"|"+i+"|"+now);M(k).c[id]={d:x.d,f:x.f,t:x.t,c:x.c,p:x.p,n:x.n,k:parseD(x.d).getTime()+i,u:now};ks.add(k);});
+  const om=r.o.m&&typeof r.o.m==="object"?r.o.m:{};
+  for(const k in om){if(!/^\d{4}-\d{2}$/.test(k)||!Array.isArray(om[k]))continue;const [dir,fac,st,mn,iu]=om[k];const x=M(k);if((+iu||0)>x.iu){x.dir=numOrNull(dir);x.fac=numOrNull(fac);x.st=[0,1,2].includes(+st)?+st:0;x.mn=String(mn??"").slice(0,300);x.iu=+iu;ks.add(k);}}
+  ks.forEach(touch);
 }
 
 /* ============ Import depuis Notes ============ */
@@ -386,7 +433,7 @@ function parseNotes(text,year){
 }
 
 /* ============ État de l'interface ============ */
-let tab="jour",selDay=today(),selMonth=mkey(today()),query="";
+let xferKind="month",tab="jour",selDay=today(),selMonth=mkey(today()),query="";
 try{const p=JSON.parse(localStorage.getItem(LS+".ui")||"{}");if(["jour","mois","bilan","suivi","plus"].includes(p.tab))tab=p.tab;}catch(e){}
 const saveUI=()=>{try{localStorage.setItem(LS+".ui",JSON.stringify({tab}));}catch(e){}};
 
@@ -671,9 +718,8 @@ function openClientSheet(y,r){
   $("#fx").onclick=closeSheet;
   $("#rnf").onsubmit=e=>{e.preventDefault();const v=$("#rnIn").value.trim();
     if(!v){$("#rnMsg").textContent="Écris un nom.";return;}
-    const nn=canon(v,["c"]);if(nn===r.l){closeSheet();return;}
-    const now=Date.now();let n=0;
-    for(const k in S.m){let ch=false;for(const id in S.m[k].c){const c=S.m[k].c[id];if(norm(c.c)===r.k){c.c=nn;c.u=now;n++;ch=true;}}if(ch)touch(k);}
+    const typed=v.replace(/\s+/g," ");const nn=norm(typed)===r.k?typed:canon(typed,["c"]);if(nn===r.l){closeSheet();return;}
+    const n=renameClientAll(r.k,nn);
     closeSheet();render();toast(`${plural(n,"course")} : ${r.l} → ${nn}`);};
 }
 function openMonthSheet(k,pick){
@@ -723,10 +769,11 @@ function viewPlus(){
     <div class="row2"><div class="field" style="flex:0 0 120px"><label for="yearIn">Année</label><input class="inp" id="yearIn" inputmode="numeric" value="${new Date().getFullYear()}"></div><button class="btn" id="parseBtn" style="align-self:flex-end">Analyser</button></div>
   </section>
   <section class="card stack" id="transfer"><div class="label">Transférer mes courses</div>
-    <p class="small" style="margin:0">Pour passer de la version Claude à la version du site (ou l'inverse) : crée le code ici, copie-le, puis colle-le dans l'autre version. Les courses s'ajoutent sans rien effacer.</p>
+    <p class="small" style="margin:0">Choisis la période, crée le code, puis colle-le dans l'autre version : pour cette période, l'autre version devient identique à celle-ci (ajouts, corrections et suppressions compris).</p>
+    <div class="seg" id="perSeg" role="radiogroup"><button type="button" role="radio" data-v="week" aria-checked="${xferKind==="week"}">7 derniers jours</button><button type="button" role="radio" data-v="month" aria-checked="${xferKind==="month"}">Ce mois-ci</button><button type="button" role="radio" data-v="all" aria-checked="${xferKind==="all"}">Tout</button></div>
     <button class="btn ghost" id="mkCode">Créer mon code</button>
     <textarea class="codebox" id="codeOut" readonly hidden></textarea><div class="msg" id="codeMsg"></div>
-    <div class="field"><label for="codeIn">Coller un code</label><textarea class="codebox" id="codeIn" placeholder="CRS2:…"></textarea></div>
+    <div class="field"><label for="codeIn">Coller un code</label><textarea class="codebox" id="codeIn" placeholder="CRS3:…"></textarea></div>
     <button class="btn" id="loadCode">Charger le code</button><div class="msg" id="loadMsg"></div>
   </section>
   <section class="card stack"><div class="label">Tout exporter</div><p class="small" style="margin:0">Toutes tes courses dans un fichier à ouvrir avec Excel ou Numbers.</p><button class="btn ghost" id="csvAll">Fichier Excel (CSV)</button><div class="msg" id="csvMsg"></div></section>
@@ -740,10 +787,24 @@ function bindPlus(){
     const r=parseNotes($("#notesIn").value,y);
     openImport(r);
   };
-  $("#mkCode").onclick=async()=>{const code=await exportCode();const box=$("#codeOut");box.hidden=false;box.value=code;
-    try{await navigator.clipboard.writeText(code);$("#codeMsg").className="msg ok";$("#codeMsg").textContent="Code copié ("+plural(countAll(),"course")+"). Colle-le dans l'autre version.";}
-    catch(e){box.focus();box.select();$("#codeMsg").className="msg";$("#codeMsg").textContent="Sélectionne le code ci-dessus puis Copier.";}};
-  $("#loadCode").onclick=async()=>{const [ok,msg]=await importCode($("#codeIn").value);const el=$("#loadMsg");el.className="msg "+(ok?"ok":"bad");el.textContent=msg;if(ok){$("#codeIn").value="";renderTop();}};
+  $("#perSeg").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{xferKind=b.dataset.v;$("#perSeg").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",x===b));$("#codeOut").hidden=true;$("#codeMsg").textContent="";});
+  $("#mkCode").onclick=async()=>{
+    const r=await exportShort(xferKind);const code=r.code;const box=$("#codeOut");box.hidden=false;box.value=code;
+    const per=xferKind==="all"?"toutes tes courses":xferKind==="month"?"le mois en cours":"les 7 derniers jours";
+    try{await navigator.clipboard.writeText(code);$("#codeMsg").className="msg ok";$("#codeMsg").textContent=`Code copié : ${per}, ${plural(r.n,"course")}, ${code.length} caractères. Colle-le dans l'autre version.`;}
+    catch(e){box.focus();box.select();$("#codeMsg").className="msg";$("#codeMsg").textContent=`${capf(per)}, ${plural(r.n,"course")}. Sélectionne le code ci-dessus puis Copier.`;}};
+  $("#loadCode").onclick=async()=>{
+    const el=$("#loadMsg"),txt=$("#codeIn").value;
+    const r=await readShort(txt);
+    if(!r){const [ok,msg]=await importCode(txt);el.className="msg "+(ok?"ok":"bad");el.textContent=msg;if(ok){$("#codeIn").value="";renderTop();}return;}
+    if(r.err){el.className="msg bad";el.textContent=r.err;return;}
+    const per=r.o.b==="9999-12-31"?`depuis le ${fmtDM(r.o.a)} ${r.o.a.slice(0,4)}`:`du ${fmtDM(r.o.a)} au ${fmtDM(r.o.b)}`;
+    if(!r.add.length&&!r.del.length&&!r.keep.some(([c,x])=>shortDiff(c,x))){applyShort(r);el.className="msg ok";el.textContent=`Déjà à jour (${per} : ${plural(r.inc.length,"course")}).`;$("#codeIn").value="";return;}
+    el.className="msg";
+    el.innerHTML=`<div class="confirm" style="background:var(--accent-soft)"><b>Période ${esc(per)}</b><span class="small" style="color:var(--ink)">Sur cet appareil : ${plural(r.ex.length,"course")} → après : ${plural(r.inc.length,"course")}.<br>${r.add.length?`${r.add.length} ajoutée${r.add.length>1?"s":""}`:"Aucun ajout"}${(m=>m?` · ${m} corrigée${m>1?"s":""}`:"")(r.keep.filter(([c,x])=>shortDiff(c,x)).length)}${r.del.length?` · <b>${r.del.length} retirée${r.del.length>1?"s":""}</b> (absentes du code)`:""}.</span><div class="row2"><button class="btn ghost" id="lNo">Annuler</button><button class="btn" id="lYes">Mettre à jour</button></div></div>`;
+    $("#lNo").onclick=()=>{el.innerHTML="";};
+    $("#lYes").onclick=()=>{applyShort(r);$("#codeIn").value="";el.className="msg ok";el.textContent=`C'est à jour : ${plural(countAll(),"course")} au total.`;renderTop();};
+  };
   $("#csvAll").onclick=()=>saveFile("courses-toutes.csv",csvText(allList()),$("#csvMsg"));
   $("#wipe").onclick=()=>{
     $("#wipeZone").innerHTML=`<div class="confirm"><b>Effacer ${plural(countAll(),"course")} ?</b><span class="small" style="color:var(--ink)">Crée d'abord un code de transfert si tu veux garder une copie.${sync==="account"?" L'effacement touche aussi ta sauvegarde sur le compte.":""}</span><div class="row2"><button class="btn ghost" id="wNo">Annuler</button><button class="btn danger" id="wYes">Effacer</button></div></div>`;
@@ -801,6 +862,7 @@ function openForm(ref,defDate){
   $("#fx").onclick=closeSheet;
   $("#cf").onsubmit=e=>{
     e.preventDefault();
+    const typed=$("#fc").value.trim().replace(/\s+/g," ");
     const d=$("#fd").value,f=canonPlace($("#ff").value),t=canonPlace($("#ft").value),cl=canon($("#fc").value,["c"]);
     const pv=$("#fp").value.trim(),p=parseMoney(pv);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$("#fmsg").textContent="Choisis une date.";return;}
@@ -808,7 +870,9 @@ function openForm(ref,defDate){
     if(pv&&p==null){$("#fmsg").textContent="Le prix doit être un nombre, par exemple 35 ou 42,50.";return;}
     const o={d,f,t,c:cl,p,n:$("#fn").value.trim().slice(0,200)};
     closeSheet();
-    if(edit){updateCourse(ref.id,ref.k,o);render();toast("Course modifiée.");}
+    if(edit){
+      if(typed&&norm(typed)===norm(edit.c)&&typed!==edit.c){o.c=typed;updateCourse(ref.id,ref.k,o);const n=renameClientAll(norm(typed),typed);render();toast(`Nom corrigé : « ${typed} » sur ${plural(n+1,"course")}.`);}
+      else{updateCourse(ref.id,ref.k,o);render();toast("Course modifiée.");}}
     else{const r=addCourse(o);const n=monthList(r.k).find(x=>x.id===r.id).no;if(tab==="jour")selDay=d;else selMonth=mkey(d);render();toast(`Course n°${n} ajoutée : ${route(o)}`,()=>{deleteCourse(r.id,r.k);render();});}
   };
   if(edit)$("#fdel").onclick=()=>{
