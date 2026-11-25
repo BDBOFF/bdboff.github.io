@@ -287,6 +287,24 @@ const unitDone=u=>unitSeen(u)===u.items.length&&u.items.every(it=>(S.cards[it.ke
 const dueList=()=>Object.entries(S.cards).filter(([k,c])=>BYKEY[k]&&c.d<=Date.now()).sort((a,b)=>a[1].d-b[1].d).map(([k])=>k);
 const DAYS=[0,0.4,2,4,9,21];
 
+/* ---------------- Transfert entre versions ---------------- */
+function exportCode(){const j=JSON.stringify({x:S.xp,g:S.goal,d:S.days,u:S.units,c:S.cards,t:S.updated});return "EGO1:"+btoa(unescape(encodeURIComponent(j)));}
+function importCode(txt){
+  const m=String(txt||"").replace(/\s+/g,"").match(/EGO1:([A-Za-z0-9+/=]+)/);
+  if(!m)return "Code introuvable. Il doit commencer par EGO1: — copie-le en entier.";
+  let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));}catch(e){return "Ce code est abîmé. Recopie-le en entier depuis l'autre version.";}
+  if(!o||typeof o!=="object"||!o.c)return "Ce code ne contient pas de progression.";
+  const before=Object.keys(S.cards).length;
+  S.xp=Math.max(S.xp||0,o.x||0);
+  if(o.t>(S.updated||0)&&o.g)S.goal=o.g;
+  Object.entries(o.d||{}).forEach(([k,v])=>{S.days[k]=Math.max(S.days[k]||0,+v||0);});
+  Object.entries(o.u||{}).forEach(([k,v])=>{const a=S.units[k]||{lessons:0};S.units[k]={lessons:Math.max(a.lessons||0,(v&&v.lessons)||0)};});
+  Object.entries(o.c||{}).forEach(([k,v])=>{if(!BYKEY[k]||!v)return;const a=S.cards[k];if(!a||v.b>a.b||(v.b===a.b&&v.d>a.d))S.cards[k]={b:Math.min(5,Math.max(1,+v.b||1)),d:+v.d||Date.now()};});
+  save();render();
+  const added=Object.keys(S.cards).length-before;
+  return "Progression chargée"+(added>0?" : "+added+" mot"+(added>1?"s":"")+" ajouté"+(added>1?"s":""):"")+".";
+}
+
 /* ---------------- Audio ---------------- */
 let tts=null;
 if(window.claude&&window.claude.use){claude.use("tts").then(t=>{tts=t;}).catch(()=>{});}
@@ -418,6 +436,15 @@ function guideView(){
    <li><code>ee</code> / <code>ea</code> : un « i » long (tea, meet).</li></ul></section>
   <h2 style="font-size:1.3rem">Grammaire express</h2>
   ${UNITS.map((u,i)=>{const open=unitUnlocked(i);return `<section class="card tip" ${open?"":'style="opacity:.55"'}><span class="label">${unitName(u)} · ${esc(u.title)}</span><h3>${esc(u.tip.t)}</h3>${open?u.tip.b:'<p class="muted">Se débloque avec l\'unité.</p>'}</section>`;}).join("")}
+  <section class="card" id="transfer"><span class="label">Transférer ma progression</span>
+   <h3 style="font-size:1.1rem">Passer de Claude au site, ou l'inverse</h3>
+   <ol class="small" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">
+    <li>Sur la version que tu quittes, touche <b>Copier mon code</b>.</li>
+    <li>Sur l'autre version, colle le code ci-dessous et touche <b>Charger le code</b>.</li></ol>
+   <p class="small muted" style="margin:0">Rien n'est perdu : les deux progressions sont fusionnées et on garde le meilleur de chaque côté.</p>
+   <button class="btn" id="exportBtn">Copier mon code</button>
+   <textarea id="codeBox" class="search" rows="3" placeholder="Colle ici un code qui commence par EGO1:" autocomplete="off" autocapitalize="off" spellcheck="false" style="resize:vertical;font-size:.85rem"></textarea>
+   <button class="btn ghost" id="importBtn">Charger le code</button></section>
   <section class="card"><span class="label">Réglages</span>
    <label class="row" for="goal"><span class="sp">Objectif quotidien</span><select id="goal">${[[15,"Tranquille · 15 XP"],[30,"Régulier · 30 XP"],[50,"Sérieux · 50 XP"],[80,"Intensif · 80 XP"]].map(([v,l])=>`<option value="${v}" ${S.goal==v?"selected":""}>${l}</option>`).join("")}</select></label>
    <p class="small muted" style="margin:0">${esc(syncMsg)}</p>
@@ -433,6 +460,10 @@ function bindView(){
   document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(MSGS[+b.dataset.copy][0]));
   const hp=$("#hideP");if(hp)hp.onclick=()=>{showP=null;render();};
   const cp=$("#copyP");if(cp)cp.onclick=()=>copyText(showP[0]);
+  const ex=$("#exportBtn");if(ex)ex.onclick=()=>{const code=exportCode();const box=$("#codeBox");
+    const fallback=()=>{box.value=code;box.focus();box.select();toast("Code affiché et sélectionné : appuie dessus et choisis Copier.");};
+    try{navigator.clipboard.writeText(code).then(()=>toast("Code copié. Colle-le dans l'autre version."),fallback);}catch(e){fallback();}};
+  const im=$("#importBtn");if(im)im.onclick=()=>{const r=importCode($("#codeBox").value);if(r)toast(r);};
   const g=$("#goal");if(g)g.onchange=()=>{S.goal=+g.value;save();render();};
   const r=$("#reset");if(r)r.onclick=()=>{if(!confirmReset){confirmReset=true;render();return;}S=DEF();save();confirmReset=false;tab="home";render();toast("Progression réinitialisée");};
 }
