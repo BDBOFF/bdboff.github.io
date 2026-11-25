@@ -150,6 +150,7 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .mg span{display:flex;flex-direction:column;min-width:0}
 .mg b{font-size:20px;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mg i{font-style:normal;font-size:12px;color:var(--muted)}
+.mn{font-size:14px;color:var(--muted);white-space:pre-wrap}
 .mf{display:flex;flex-wrap:wrap;gap:6px}
 .mf:empty{display:none}
 .tag{font-size:13px;font-weight:600;padding:3px 9px;border-radius:8px;background:var(--bg);color:var(--muted)}
@@ -225,16 +226,16 @@ function stable(o){if(Array.isArray(o))return "["+o.map(stable).join(",")+"]";if
 
 /* ============ Données ============ */
 const LS="carnet-courses.v1";
-const blankMonth=()=>({c:{},x:{},dir:null,fac:null,st:0,iu:0,u:0});
+const blankMonth=()=>({c:{},x:{},dir:null,fac:null,st:0,mn:"",iu:0,u:0});
 function okCourse(c,k){return c&&typeof c==="object"&&typeof c.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(c.d)&&mkey(c.d)===k;}
 function cleanCourse(c){const s=v=>String(v??"").slice(0,80);return{d:c.d,f:s(c.f),t:s(c.t),c:s(c.c),p:numOrNull(c.p),n:String(c.n??"").slice(0,200),k:+c.k||0,u:+c.u||0};}
 function mergeMonth(a,b,k){
   a=a&&typeof a==="object"?a:{};b=b&&typeof b==="object"?b:{};
-  const r={c:{},x:{},dir:null,fac:null,st:0,iu:0,u:Math.max(+a.u||0,+b.u||0)};
+  const r={c:{},x:{},dir:null,fac:null,st:0,mn:"",iu:0,u:Math.max(+a.u||0,+b.u||0)};
   for(const s of [a.x,b.x])if(s&&typeof s==="object")for(const id in s){const v=+s[id]||0;if(v>(r.x[id]||0))r.x[id]=v;}
   for(const s of [a.c,b.c])if(s&&typeof s==="object")for(const id in s){const c=s[id];if(!okCourse(c,k))continue;const cur=r.c[id];if(!cur||(+c.u||0)>cur.u)r.c[id]=cleanCourse(c);}
   for(const id in r.c)if(r.x[id]&&r.x[id]>=r.c[id].u)delete r.c[id];
-  const info=(+b.iu||0)>(+a.iu||0)?b:a;r.dir=numOrNull(info.dir);r.fac=numOrNull(info.fac);r.st=[0,1,2].includes(+info.st)?+info.st:0;r.iu=+info.iu||0;
+  const info=(+b.iu||0)>(+a.iu||0)?b:a;r.dir=numOrNull(info.dir);r.fac=numOrNull(info.fac);r.st=[0,1,2].includes(+info.st)?+info.st:0;r.mn=String(info.mn??"").slice(0,300);r.iu=+info.iu||0;
   return r;
 }
 function load(){try{const r=JSON.parse(localStorage.getItem(LS)||"null");if(r&&r.m){const m={};for(const k in r.m)if(/^\d{4}-\d{2}$/.test(k))m[k]=mergeMonth(blankMonth(),r.m[k],k);return{v:1,m};}}catch(e){}return{v:1,m:{}};}
@@ -513,6 +514,7 @@ function verdictHTML(k){
   let f="";
   if(fac!=null){const base=dir??mine;f+=`<div class="small">Facture : <b style="color:var(--ink)">${esc(euro(fac))}</b>${base?` · soit ${esc(euro(Math.round(fac/base*100)/100))} par course en moyenne`:""}</div>`;}
   if(own)f+=`<div class="small">Total des prix que tu as notés : <b style="color:var(--ink)">${esc(euro(own))}</b>${fac!=null?` (écart ${esc(euro(Math.round(Math.abs(fac-own)*100)/100))})`:""}</div>`;
+  if(m.mn)f+=`<div class="small">Détail : <span style="color:var(--ink)">${esc(m.mn)}</span></div>`;
   return v+f;
 }
 function viewBilan(){
@@ -551,6 +553,7 @@ function recapText(k){
   let t=`${monthLabel(k)} : ${plural(ml.length,"course")}\n`;
   if(m.dir!=null)t+=`Selon la direction : ${m.dir}\n`;
   if(m.fac!=null)t+=`Facture : ${euro(m.fac)}${m.st?" ("+STATUS[m.st].toLowerCase()+")":""}\n`;
+  if(m.mn)t+=`Détail : ${m.mn}\n`;
   t+="\nPar semaine\n";weeksOf(ml).forEach(w=>{t+=`- du ${fmtDM(w.ws)} au ${fmtDM(addDays(w.ws,6))} : ${w.items.length}\n`;});
   t+="\nPar client\n";groupCount(ml,c=>norm(c.c),c=>c.c||"Sans client").forEach(r=>{t+=`- ${r.l} : ${r.n}\n`;});
   t+="\nDétail\n";let d=null;
@@ -588,8 +591,8 @@ const STATUS=["À faire","Envoyée","Payée"];
 let suiviYear=String(new Date().getFullYear());
 function statusSeg(cur,id){return `<div class="seg" id="${id}" role="radiogroup">${STATUS.map((l,i)=>`<button type="button" role="radio" aria-checked="${(+cur||0)===i}" data-v="${i}" class="s${i}">${l}</button>`).join("")}</div>`;}
 function bindSeg(id,fn){const el=$("#"+id);if(!el)return;el.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{el.querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",x===b));fn(+b.dataset.v);});}
-function monthStats(k){const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,n=dir??mine,fac=m.fac;return{k,mine,dir,n,fac,st:m.st||0,per:fac!=null&&n?fac/n:null};}
-const hasInfo=k=>!!(countMonth(k)||(S.m[k]&&(S.m[k].dir!=null||S.m[k].fac!=null)));
+function monthStats(k){const m=S.m[k]||blankMonth(),mine=countMonth(k),dir=m.dir,n=dir??mine,fac=m.fac;return{k,mine,dir,n,fac,mn:m.mn||"",st:m.st||0,per:fac!=null&&n?fac/n:null};}
+const hasInfo=k=>!!(countMonth(k)||(S.m[k]&&(S.m[k].dir!=null||S.m[k].fac!=null||S.m[k].mn)));
 const kfmt=n=>n>=1000?(n/1000).toLocaleString("fr-FR",{maximumFractionDigits:1})+"k":String(Math.round(n));
 function pct(a,b){if(!b)return "";const p=Math.round((a-b)/b*100);return (p>0?"+":"")+p+" %";}
 function viewSuivi(){
@@ -611,6 +614,7 @@ function viewSuivi(){
         <span><b class="num">${x.fac!=null?esc(euro(x.fac)):"—"}</b><i>facture</i></span>
         <span><b class="num">${x.per!=null?esc(euro(Math.round(x.per*100)/100)):"—"}</b><i>par course</i></span>
       </span>
+      ${x.mn?`<span class="mn">${esc(x.mn)}</span>`:""}
       <span class="mf">${ecart!=null?(ecart===0?'<span class="tag ok">Notes = direction</span>':`<span class="tag ${ecart>0?"warn":"bad"}">${ecart>0?ecart+" non notée"+(ecart>1?"s":""):(-ecart)+" en trop dans mes notes"}</span>`):""}${pv?`<span class="tag">${esc(pct(x.n,pv.n))||"="} courses vs ${esc(MOIS[+prevK.slice(5)-1])}</span>`:""}${pv&&x.fac!=null&&pv.fac!=null?`<span class="tag">${esc(pct(x.fac,pv.fac))||"="} facture</span>`:""}</span>
     </button>`;}).join("");
   return `<div class="stack">
@@ -641,6 +645,7 @@ function openMonthSheet(k,pick){
       <div class="field"><label for="mFac">Montant (€)</label><input class="inp big" id="mFac" inputmode="decimal" value="${m.fac!=null?String(m.fac).replace(".",","):""}" placeholder="—"></div>
     </div>
     <div class="field"><label>Facture</label>${statusSeg(m.st,"mSt")}</div>
+    <div class="field"><label for="mNote">Détail de la facture (facultatif)</label><textarea class="inp" id="mNote" maxlength="300" style="min-height:76px" placeholder="ex. 3 239,73 € + 88 € de péage · URSSAF 746 €">${esc(m.mn||"")}</textarea></div>
     <div class="msg bad" id="mMsg"></div>
     <button class="btn block" type="submit">Enregistrer</button>
     <button type="button" class="btn ghost block" id="mBilan">Voir le bilan détaillé</button>
@@ -648,7 +653,7 @@ function openMonthSheet(k,pick){
   let stv=m.st||0;
   bindSeg("mSt",v=>{stv=v;});
   const key=()=>pick?$("#mk").value:k;
-  if(pick)$("#mk").onchange=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;const mm=S.m[kk]||blankMonth();$("#mMine").innerHTML=`Mes notes : <b style="color:var(--ink)">${plural(countMonth(kk),"course")}</b>`;$("#mDir").value=mm.dir??"";$("#mFac").value=mm.fac!=null?String(mm.fac).replace(".",","):"";stv=mm.st||0;$("#mSt").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",+x.dataset.v===stv));};
+  if(pick)$("#mk").onchange=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;const mm=S.m[kk]||blankMonth();$("#mMine").innerHTML=`Mes notes : <b style="color:var(--ink)">${plural(countMonth(kk),"course")}</b>`;$("#mDir").value=mm.dir??"";$("#mFac").value=mm.fac!=null?String(mm.fac).replace(".",","):"";$("#mNote").value=mm.mn||"";stv=mm.st||0;$("#mSt").querySelectorAll("[data-v]").forEach(x=>x.setAttribute("aria-checked",+x.dataset.v===stv));};
   $("#fx").onclick=closeSheet;
   $("#mBilan").onclick=()=>{const kk=key();if(!/^\d{4}-\d{2}$/.test(kk))return;closeSheet();selMonth=kk;tab="bilan";saveUI();render();window.scrollTo(0,0);};
   $("#mf").onsubmit=e=>{e.preventDefault();const kk=key();
@@ -657,7 +662,7 @@ function openMonthSheet(k,pick){
     const n=dv===""?null:parseInt(dv.replace(/\D/g,""),10);
     if(dv!==""&&!isFinite(n)){$("#mMsg").textContent="Le nombre de courses doit être un nombre, par exemple 78.";return;}
     const f=parseMoney(fv);if(fv!==""&&f==null){$("#mMsg").textContent="Le montant doit être un nombre, par exemple 2309 ou 2309,50.";return;}
-    const mm=M(kk);mm.dir=n;mm.fac=f;mm.st=stv;mm.iu=Date.now();touch(kk);
+    const mm=M(kk);mm.dir=n;mm.fac=f;mm.st=stv;mm.mn=$("#mNote").value.trim().slice(0,300);mm.iu=Date.now();touch(kk);
     closeSheet();suiviYear=kk.slice(0,4);render();toast(monthLabel(kk)+" enregistré.");};
 }
 
@@ -701,7 +706,7 @@ function bindPlus(){
   $("#wipe").onclick=()=>{
     $("#wipeZone").innerHTML=`<div class="confirm"><b>Effacer ${plural(countAll(),"course")} ?</b><span class="small" style="color:var(--ink)">Crée d'abord un code de transfert si tu veux garder une copie.${sync==="account"?" L'effacement touche aussi ta sauvegarde sur le compte.":""}</span><div class="row2"><button class="btn ghost" id="wNo">Annuler</button><button class="btn danger" id="wYes">Effacer</button></div></div>`;
     $("#wNo").onclick=render;
-    $("#wYes").onclick=()=>{const now=Date.now();for(const k in S.m){const m=S.m[k];for(const id in m.c){m.x[id]=now;}m.c={};m.dir=null;m.fac=null;m.st=0;m.iu=now;touch(k);}render();toast("Toutes les courses ont été effacées.");};
+    $("#wYes").onclick=()=>{const now=Date.now();for(const k in S.m){const m=S.m[k];for(const id in m.c){m.x[id]=now;}m.c={};m.dir=null;m.fac=null;m.st=0;m.mn="";m.iu=now;touch(k);}render();toast("Toutes les courses ont été effacées.");};
   };
 }
 
