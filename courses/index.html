@@ -123,6 +123,9 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 /* bars */
 .bars{display:flex;flex-direction:column;gap:8px}
 .bar{display:grid;grid-template-columns:minmax(0,38%) 1fr auto;align-items:center;gap:10px;font-size:15px}
+.grp .n{font-weight:700}
+.bar.grp{grid-template-columns:minmax(0,60%) 1fr auto}
+.bar .n small{font-weight:500;color:var(--muted)}
 .cbtn{width:100%;text-align:left;padding:4px 0;border-radius:8px}
 .cbtn:active{background:var(--accent-soft)}
 .bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -586,7 +589,7 @@ function viewBilan(){
     <div class="stack" style="gap:8px" id="verdict">${verdictHTML(k)}</div>
     <button class="linkbtn" id="toSuivi" style="align-self:flex-start;padding-left:0">Voir le suivi de tous les mois →</button>
   </section>
-  ${ml.length?`<section class="card stack"><div class="label">Par client</div>${barsHTML(byClient,12)}</section>
+  ${ml.length?`<section class="card stack"><div class="label">Par client</div>${(g=>g.length?barsHTML(g.map(x=>({l:x.l+" ("+x.names.size+")",n:x.n})),5)+'<div class="label" style="margin-top:4px">Détail</div>':"")(clientGroups(ml))}${barsHTML(byClient,12)}</section>
   <section class="card stack"><div class="label">Par trajet</div>${barsHTML(byRoute,10)}</section>
   <section class="card stack"><div class="label">Par semaine</div>${barsHTML(byWeek,6)}</section>`:`<div class="card empty">Pas encore de course ce mois-ci.</div>`}
   <section class="card stack"><div class="label" style="display:flex;justify-content:space-between"><span>Année ${y}</span><span>${plural(ytot,"course")}</span></div>
@@ -685,22 +688,29 @@ function bindSuivi(){
   document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>openMonthSheet(b.dataset.sm));
   const cl=clientYear(suiviYear);
   document.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>openClientSheet(suiviYear,cl[+b.dataset.cl]));
+  const gr=clientGroups(yearList(suiviYear));document.querySelectorAll("[data-cg]").forEach(b=>b.onclick=()=>openClientSheet(suiviYear,gr[+b.dataset.cg]));
   if($("#clMore"))$("#clMore").onclick=()=>{clientsAll=true;render();};
   $("#addMonth").onclick=()=>{const cur=mkey(today());const k=suiviYear===cur.slice(0,4)?addMonths(cur,new Date().getDate()<20?-1:0):suiviYear+"-12";openMonthSheet(k,true);};
 }
 let clientsAll=false;
 function clientYear(y){const m=new Map();for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{const k=norm(c.c);const e=m.get(k)||{k,l:c.c||"Sans client",n:0,mo:Array(12).fill(0)};e.n++;e.mo[i-1]++;m.set(k,e);});return [...m.values()].sort((a,b)=>b.n-a.n);}
+const firstWord=v=>norm(v).split(" ")[0]||"";
+function clientGroups(list,y){const m=new Map();list.forEach(c=>{const w=firstWord(c.c);if(!w)return;let e=m.get(w);if(!e){e={w,l:"Tous les "+String(c.c).trim().split(/\s+/)[0],names:new Set(),n:0,mo:Array(12).fill(0),group:true,match:x=>firstWord(x.c)===w};m.set(w,e);}e.names.add(norm(c.c));e.n++;e.mo[+c.d.slice(5,7)-1]++;});
+  return [...m.values()].filter(e=>e.names.size>1).sort((a,b)=>b.n-a.n);}
+const yearList=y=>{const l=[];for(let i=1;i<=12;i++)l.push(...monthList(y+"-"+pad(i)));return l;};
 function clientSection(y){
   const cl=clientYear(y);if(!cl.length)return "";
-  const max=cl[0].n,shown=clientsAll?cl:cl.slice(0,8);
+  const max=cl[0].n,shown=clientsAll?cl:cl.slice(0,8),gr=clientGroups(yearList(y));
+  const gmax=Math.max(max,...gr.map(g=>g.n));
   return `<section class="card stack"><div class="label" style="display:flex;justify-content:space-between"><span>Courses par client · ${esc(y)}</span><span>${plural(cl.length,"client")}</span></div>
-  <div class="bars">${shown.map((r,i)=>`<button class="bar cbtn" data-cl="${i}"><span class="n">${esc(r.l)}</span><span class="track"><span class="fill" style="display:block;width:${(r.n/max*100).toFixed(1)}%"></span></span><span class="v">${r.n}</span></button>`).join("")}</div>
+  ${gr.length?`<div class="bars">${gr.map((g,i)=>`<button class="bar cbtn grp" data-cg="${i}"><span class="n">${esc(g.l)} <small>(${g.names.size})</small></span><span class="track"><span class="fill" style="display:block;width:${(g.n/gmax*100).toFixed(1)}%"></span></span><span class="v">${g.n}</span></button>`).join("")}</div><div class="label" style="margin-top:4px">Détail</div>`:""}
+  <div class="bars">${shown.map((r,i)=>`<button class="bar cbtn" data-cl="${i}"><span class="n">${esc(r.l)}</span><span class="track"><span class="fill" style="display:block;width:${(r.n/gmax*100).toFixed(1)}%"></span></span><span class="v">${r.n}</span></button>`).join("")}</div>
   ${cl.length>shown.length?`<button class="linkbtn" id="clMore" style="align-self:flex-start;padding-left:0">Voir les ${cl.length} clients</button>`:""}
   <p class="small" style="margin:0">Touche un client pour voir ses courses mois par mois.</p></section>`;
 }
 function openClientSheet(y,r){
   if(!r)return;
-  const list=[];for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{if(norm(c.c)===r.k)list.push(c);});
+  const list=[];for(let i=1;i<=12;i++)monthList(y+"-"+pad(i)).forEach(c=>{if(r.match?r.match(c):norm(c.c)===r.k)list.push(c);});
   const mx=Math.max(1,...r.mo),cur=mkey(today()),best=r.mo.indexOf(Math.max(...r.mo));
   const routes=groupCount(list,c=>norm(c.f)+"|"+norm(c.t),route);
   const active=r.mo.filter(n=>n).length;
@@ -708,8 +718,9 @@ function openClientSheet(y,r){
   <div class="sum"><div><span class="v">${r.n}</span><span class="k">courses en ${esc(y)}</span></div><div><span class="v">${active?(r.n/active).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par mois actif</span></div><div><span class="v">${esc(capf(MOIS[best]))}</span><span class="k">meilleur mois (${r.mo[best]})</span></div></div>
   <div class="year">${r.mo.map((n,i)=>`<span class="ycol ${y+"-"+pad(i+1)===cur?"cur":""}"><span class="yv">${n||""}</span><span class="yb" style="display:block;height:${(n/mx*100).toFixed(1)}%"></span><span class="ym">${MOIS3[i].slice(0,1)}</span></span>`).join("")}</div>
   <div class="bars">${r.mo.map((n,i)=>n?`<div class="bar"><span class="n">${esc(capf(MOIS[i]))}</span><span class="track"><span class="fill" style="display:block;width:${(n/mx*100).toFixed(1)}%"></span></span><span class="v">${n}</span></div>`:"").join("")}</div>
+  ${r.group?`<div class="label">Par cave</div>${barsHTML(groupCount(list,c=>norm(c.c),c=>c.c),20)}`:""}
   <div class="label">Trajets les plus faits</div>${barsHTML(routes,6)}
-  <form id="rnf" class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:14px" autocomplete="off">
+  ${r.group?`<p class="small" style="margin:0">Ce total regroupe tous les clients dont le nom commence par « ${esc(r.l.slice(9))} ».</p>`:""}<form id="rnf" ${r.group?"hidden":""} class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:14px" autocomplete="off">
     <div class="field"><label for="rnIn">Renommer ce client</label><input class="inp" id="rnIn" value="${esc(r.k?r.l:"")}" placeholder="Nom du client"></div>
     <p class="small" style="margin:0">Le changement touche toutes ses courses, tous mois confondus. Si tu mets le nom d'un autre client (par exemple « Jo Malone » pour « Jonmalone »), les deux sont regroupés.</p>
     <div class="msg bad" id="rnMsg"></div>
