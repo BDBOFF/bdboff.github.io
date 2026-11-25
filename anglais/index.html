@@ -462,7 +462,11 @@ let S=readLocal();
 let remoteRef=null, writing=Promise.resolve(), remoteTimer=null, syncMsg="Progression enregistrée sur cet appareil.";
 function persistLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 function save(){S.updated=Date.now();persistLocal();queueRemote();}
-function queueRemote(){if(!remoteRef)return;clearTimeout(remoteTimer);remoteTimer=setTimeout(()=>{const snap=JSON.parse(JSON.stringify(S));writing=writing.then(()=>remoteRef.set(snap)).catch(()=>{});},1200);}
+// The whole progress is stored as one JSON string, so new words and new days are always saved together.
+function flushRemote(){if(!remoteRef)return;clearTimeout(remoteTimer);remoteTimer=null;const doc={state:JSON.stringify(S),updated:S.updated||Date.now()};writing=writing.then(()=>remoteRef.set(doc)).catch(()=>{});}
+function queueRemote(){if(!remoteRef)return;clearTimeout(remoteTimer);remoteTimer=setTimeout(flushRemote,800);}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&remoteTimer)flushRemote();});
+window.addEventListener("pagehide",()=>{if(remoteTimer)flushRemote();});
 const dayKey=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const todayXP=()=>S.days[dayKey()]||0;
 function streak(){let n=0;const d=new Date();if(!S.days[dayKey(d)])d.setDate(d.getDate()-1);while(S.days[dayKey(d)]){n++;d.setDate(d.getDate()-1);}return n;}
@@ -479,17 +483,22 @@ const DAYS=[0,0.4,2,4,9,21];
 
 /* ---------------- Transfert entre versions ---------------- */
 function exportCode(){const j=JSON.stringify({x:S.xp,g:S.goal,d:S.days,u:S.units,c:S.cards,t:S.updated,b:S.best||0});return "EGO1:"+btoa(unescape(encodeURIComponent(j)));}
+const compact=st=>({x:st.xp,g:st.goal,d:st.days,u:st.units,c:st.cards,t:st.updated,b:st.best});
+// Merge another copy of the progress into S, keeping the best of both sides.
+function mergeIn(o){
+  S.xp=Math.max(S.xp||0,o.x||0);S.best=Math.max(S.best||0,o.b||0);
+  if((o.t||0)>(S.updated||0)&&o.g)S.goal=o.g;
+  Object.entries(o.d||{}).forEach(([k,v])=>{S.days[k]=Math.max(S.days[k]||0,+v||0);});
+  Object.entries(o.u||{}).forEach(([k,v])=>{const a=S.units[k]||{lessons:0};S.units[k]={lessons:Math.max(a.lessons||0,(v&&v.lessons)||0)};});
+  Object.entries(o.c||{}).forEach(([k,v])=>{if(!BYKEY[k]||!v)return;const a=S.cards[k];if(!a||v.b>a.b||(v.b===a.b&&v.d>a.d))S.cards[k]={b:Math.min(5,Math.max(1,+v.b||1)),d:+v.d||Date.now()};});
+}
 function importCode(txt){
   const m=String(txt||"").replace(/\s+/g,"").match(/EGO1:([A-Za-z0-9+/=]+)/);
   if(!m)return "Code introuvable. Il doit commencer par EGO1: — copie-le en entier.";
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));}catch(e){return "Ce code est abîmé. Recopie-le en entier depuis l'autre version.";}
   if(!o||typeof o!=="object"||!o.c)return "Ce code ne contient pas de progression.";
   const before=Object.keys(S.cards).length;
-  S.xp=Math.max(S.xp||0,o.x||0);S.best=Math.max(S.best||0,o.b||0);
-  if(o.t>(S.updated||0)&&o.g)S.goal=o.g;
-  Object.entries(o.d||{}).forEach(([k,v])=>{S.days[k]=Math.max(S.days[k]||0,+v||0);});
-  Object.entries(o.u||{}).forEach(([k,v])=>{const a=S.units[k]||{lessons:0};S.units[k]={lessons:Math.max(a.lessons||0,(v&&v.lessons)||0)};});
-  Object.entries(o.c||{}).forEach(([k,v])=>{if(!BYKEY[k]||!v)return;const a=S.cards[k];if(!a||v.b>a.b||(v.b===a.b&&v.d>a.d))S.cards[k]={b:Math.min(5,Math.max(1,+v.b||1)),d:+v.d||Date.now()};});
+  mergeIn(o);
   save();render();
   const added=Object.keys(S.cards).length-before;
   return "Progression chargée"+(added>0?" : "+added+" mot"+(added>1?"s":"")+" ajouté"+(added>1?"s":""):"")+".";
@@ -836,8 +845,10 @@ function renderGame(){const root=$("#root");
     const ref=db.collection("data/users/"+id).doc("progress");
     const snap=await Promise.race([ref.get(),new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),10000))]);
     remoteRef=ref;
-    if(snap.exists){const r=normalizeState(snap.data());if((r.updated||0)>(S.updated||0)){S=r;persistLocal();if(!L)render();}else if(S.updated)queueRemote();}
-    else if(S.updated)queueRemote();
+    if(snap.exists){const d=snap.data()||{};let r;try{r=normalizeState(typeof d.state==="string"?JSON.parse(d.state):d);}catch(e){r=null;}
+      if(r){const before=JSON.stringify(S);mergeIn(compact(r));S.updated=Math.max(S.updated||0,r.updated||0);persistLocal();if(!L&&!G)render();
+        if(JSON.stringify(S)!==before||typeof d.state!=="string")flushRemote();}}
+    else if(S.updated)flushRemote();
     syncMsg="Progression sauvegardée sur ton compte : retrouve-la sur tous tes appareils.";
     if(!L&&tab==="guide")render();
   }catch(e){}
