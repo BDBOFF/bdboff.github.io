@@ -190,7 +190,7 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .tab[aria-current="page"]{color:var(--mark)}
 .fab{position:fixed;z-index:21;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(78px + env(safe-area-inset-bottom,0px));height:56px;padding:0 20px 0 16px;border-radius:28px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 .fab svg{width:24px;height:24px}
-@media (min-width:600px){.fab{right:calc(50% - 262px)}}
+@media (min-width:600px) and (max-width:899px){.fab{right:calc(50% - 262px)}}
 /* sheet */
 .sheetwrap{position:fixed;inset:0;z-index:40;background:rgba(5,15,25,.45);display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
@@ -215,6 +215,31 @@ textarea.inp{padding:10px 12px;min-height:160px;font-size:15px;line-height:1.35;
 .codebox{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:90px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:10px;word-break:break-all}
 .msg{font-size:14px;font-weight:600}
 .msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+/* Desktop: sidebar navigation, wide two-column views, centred dialogs */
+@media (min-width:900px){
+  body{padding-left:210px}
+  #app{max-width:1180px;padding-left:32px;padding-right:32px;padding-block:24px 40px}
+  .tabs{top:0;bottom:0;right:auto;width:210px;flex-direction:column;justify-content:flex-start;border-top:0;border-right:1px solid var(--line);padding:84px 12px 16px}
+  .tabs .in{flex-direction:column;gap:4px}
+  .tab{flex:none;flex-direction:row;gap:12px;padding:11px 14px;font-size:15px;justify-content:flex-start}
+  .tab[aria-current="page"]{background:var(--mark-soft)}
+  .tab:hover{background:var(--accent-soft)}
+  .fab{right:40px;bottom:32px}
+  .toast{bottom:32px;left:calc(50% + 105px)}
+  .sheetwrap{align-items:center;padding:24px}
+  .sheet{border-radius:20px;max-height:88%;max-width:600px}
+  .top{margin-bottom:20px}
+  .v-jour,.v-bilan,.v-suivi,.v-plus{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+  .v-jour>.nav,.v-jour>.counters,.v-bilan>.nav,.v-suivi>.nav,.v-suivi>#addMonth,.v-suivi>.mrows,.v-suivi>p,.v-suivi>.empty,.v-plus>h2{grid-column:1/-1}
+  .v-jour>.counters{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .mrows .mg{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .v-mois>.nav,.v-mois>.card,.v-mois>.search{max-width:none}
+  #mList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;align-items:start}
+  .counter .v{font-size:48px}
+  .nav .t h2{font-size:28px}
+}
+@media (min-width:1400px){.v-jour>.counters{grid-template-columns:repeat(3,minmax(0,1fr))}#mList{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px)}to{transform:none;opacity:1}}}
 </style>
 
@@ -506,7 +531,7 @@ function viewJour(){
   const isToday=selDay===today();
   const cb=combos();
   const total=day.reduce((s,c)=>s+(c.p||0),0);
-  return `<div class="stack">
+  return `<div class="stack v-jour">
   <div class="nav"><button class="arrow" id="dPrev" aria-label="Jour précédent">‹</button>
     <div class="t"><button class="ttl" id="pick" aria-label="Choisir une date"><h2>${esc(fmtDay(selDay))}</h2><span class="car" aria-hidden="true">▾</span></button>${isToday?'<div class="small">Aujourd\'hui</div>':'<button class="linkbtn" id="dToday">Revenir à aujourd\'hui</button>'}</div>
     <button class="arrow" id="dNext" aria-label="Jour suivant">›</button></div>
@@ -543,7 +568,7 @@ function bindJour(){
 function weeksOf(list){const g=[];let cur=null;list.forEach(c=>{const ws=weekStart(c.d);if(!cur||cur.ws!==ws){cur={ws,items:[]};g.push(cur);}cur.items.push(c);});return g;}
 function viewMois(){
   const ml=monthList(selMonth),days=new Set(ml.map(c=>c.d)).size,tot=ml.reduce((s,c)=>s+(c.p||0),0);
-  return `<div class="stack">
+  return `<div class="stack v-mois">
   <div class="nav"><button class="arrow" id="mPrev" aria-label="Mois précédent">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir un mois"><h2>${esc(monthLabel(selMonth))}</h2><span class="car" aria-hidden="true">▾</span></button></div><button class="arrow" id="mNext" aria-label="Mois suivant">›</button></div>
   <div class="card sum"><div><span class="v">${ml.length}</span><span class="k">courses</span></div><div><span class="v">${days}</span><span class="k">jours travaillés</span></div><div><span class="v">${days?(ml.length/days).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par jour</span></div>${tot?`<div><span class="v">${esc(euro(tot))}</span><span class="k">prix notés</span></div>`:""}</div>
   ${ml.length?`<input class="search" id="q" type="search" placeholder="Chercher un client ou une ville" value="${esc(query)}" autocomplete="off">`:""}
@@ -558,12 +583,12 @@ function renderMonthList(){
   let h=q?`<div class="weekhead"><span class="w">Résultat</span><span class="pill">${plural(ml.length,"course")}</span></div>`:"";
   if(q&&!ml.length)h+='<div class="list"><div class="empty">Aucune course ne correspond.</div></div>';
   weeksOf(ml).forEach(w=>{
-    const we=addDays(w.ws,6);
+    const we=addDays(w.ws,6);h+='<div class="wk">';
     if(!q)h+=`<div class="weekhead"><span class="w">Semaine du ${esc(fmtDM(w.ws))} au ${esc(fmtDM(we))}</span><span class="pill">${plural(w.items.length,"course")}</span></div>`;
     h+='<div class="list">';
     let d=null;
     w.items.forEach(c=>{if(c.d!==d){d=c.d;const n=w.items.filter(x=>x.d===d).length;h+=`<div class="dayhead"><span>${esc(fmtShort(d))}</span><span class="n">${n}</span></div>`;}h+=courseRow(c);});
-    h+='</div>';
+    h+='</div></div>';
   });
   el.innerHTML=h;bindRows(el);
 }
@@ -602,7 +627,7 @@ function viewBilan(){
   const byClient=groupCount(ml,c=>norm(c.c),c=>c.c||"Sans client");
   const byRoute=groupCount(ml,c=>norm(c.f)+"|"+norm(c.t),route);
   const byWeek=weeksOf(ml).map(w=>({l:fmtDM(w.ws)+" → "+fmtDM(addDays(w.ws,6)),n:w.items.length}));
-  return `<div class="stack">
+  return `<div class="stack v-bilan">
   <div class="nav"><button class="arrow" id="bPrev" aria-label="Mois précédent">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir un mois"><h2>${esc(monthLabel(k))}</h2><span class="car" aria-hidden="true">▾</span></button></div><button class="arrow" id="bNext" aria-label="Mois suivant">›</button></div>
   <section class="card stack">
     <div class="label">Comparer avec la direction</div>
@@ -704,7 +729,7 @@ function viewSuivi(){
       ${x.mn?`<span class="mn">${esc(x.mn)}</span>`:""}
       <span class="mf">${ecart!=null?(ecart===0?'<span class="tag ok">Notes = direction</span>':`<span class="tag ${ecart>0?"warn":"bad"}">${ecart>0?ecart+" non notée"+(ecart>1?"s":""):(-ecart)+" en trop dans mes notes"}</span>`):""}${pv?`<span class="tag">${esc(pct(x.n,pv.n))||"="} courses vs ${esc(MOIS[+prevK.slice(5)-1])}</span>`:""}${pv&&x.fac!=null&&pv.fac!=null?`<span class="tag">${esc(pct(x.fac,pv.fac))||"="} facture</span>`:""}</span>
     </button>`;}).join("");
-  return `<div class="stack">
+  return `<div class="stack v-suivi">
   <div class="nav"><button class="arrow" id="yPrev" aria-label="Année précédente">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir une année"><h2>Suivi ${esc(y)}</h2><span class="car" aria-hidden="true">▾</span></button><div class="small">Factures et nombre de courses, mois par mois</div></div><button class="arrow" id="yNext" aria-label="Année suivante">›</button></div>
   <div class="card sum g2"><div><span class="v">${totN}</span><span class="k">courses</span></div><div><span class="v">${esc(euro(Math.round(totF*100)/100))}</span><span class="k">facturés</span></div><div><span class="v">${esc(euro(Math.round(totU*100)/100))}</span><span class="k">URSSAF</span></div><div><span class="v net">${esc(euro(Math.round(totNet*100)/100))}</span><span class="k">net encaissé</span></div><div><span class="v">${totFN?esc(euro(Math.round(totF/totFN*100)/100)):"—"}</span><span class="k">facturé / course</span></div><div><span class="v">${billed.length}</span><span class="k">mois facturés</span></div></div>
   <section class="card stack"><div class="label">${useF?"Factures par mois (€)":"Courses par mois"}</div>
@@ -712,7 +737,7 @@ function viewSuivi(){
   </section>
   ${clientSection(y)}
   <button class="btn ghost" id="addMonth">+ Entrer les chiffres d'un mois</button>
-  ${rows?`<div class="stack" style="gap:10px">${rows}</div>`:`<div class="card empty">Rien pour ${esc(y)}. Quand ta société te donne le nombre de courses et le montant d'un mois, entre-les ici ou dans Bilan : tu retrouveras chaque mois dans cette liste pour comparer.</div>`}
+  ${rows?`<div class="stack mrows" style="gap:10px">${rows}</div>`:`<div class="card empty">Rien pour ${esc(y)}. Quand ta société te donne le nombre de courses et le montant d'un mois, entre-les ici ou dans Bilan : tu retrouveras chaque mois dans cette liste pour comparer.</div>`}
   <p class="small" style="margin:0">Touche un mois pour modifier ses chiffres. Quand la direction n'a pas donné de chiffre, c'est le nombre de tes notes qui compte.</p>
   </div>`;
 }
@@ -853,7 +878,7 @@ function viewPlus(){
   const syncTxt=sync==="account"?"Tes courses sont sauvegardées sur ton compte Claude : tu les retrouves sur tous tes appareils."
     :sync==="error"?"La sauvegarde sur ton compte ne répond pas. Tes courses restent gardées sur cet appareil."
     :inClaude?"Connexion à ton compte…":"Version sans compte : tes courses sont gardées dans ce navigateur. Utilise le code de transfert pour les passer sur la version Claude, ou pour faire une copie de secours.";
-  return `<div class="stack">
+  return `<div class="stack v-plus">
   <h2>Réglages</h2>
   <section class="card stack"><div class="label">Sauvegarde</div><p style="margin:0">${esc(syncTxt)}</p><p class="small" style="margin:0">${plural(countAll(),"course")} enregistrée${countAll()>1?"s":""} au total.</p></section>
   <section class="card stack"><div class="label">Importer depuis l'appli Notes</div>
