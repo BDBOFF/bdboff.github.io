@@ -104,6 +104,14 @@ h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0}
 .list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .crow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;text-align:left;border-top:1px solid var(--line)}
 .crow:first-child{border-top:0}
+.crow.pend{box-shadow:inset 4px 0 0 var(--mark);background:var(--mark-soft)}
+.crow.done{box-shadow:inset 4px 0 0 var(--ok)}
+.stt{flex:none;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px}
+.pend .stt{background:var(--mark);color:#fff}
+.done .stt{background:var(--ok-soft);color:var(--ok)}
+.pendnote{background:var(--mark-soft);border-radius:12px;padding:10px 14px;font-weight:600;font-size:14px}
+.chk{display:flex;align-items:center;gap:10px;font-weight:600}
+.chk input{width:22px;height:22px;accent-color:var(--ok)}
 .crow:active{background:var(--accent-soft)}
 .crow .no{font-family:var(--f-display);font-weight:600;font-size:18px;color:var(--muted);min-width:30px;font-variant-numeric:tabular-nums}
 .crow .mid{flex:1;min-width:0}
@@ -281,7 +289,7 @@ function stable(o){if(Array.isArray(o))return "["+o.map(stable).join(",")+"]";if
 const LS="carnet-courses.v1";
 const blankMonth=()=>({c:{},x:{},dir:null,fac:null,ur:null,st:0,mn:"",iu:0,u:0});
 function okCourse(c,k){return c&&typeof c==="object"&&typeof c.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(c.d)&&mkey(c.d)===k;}
-function cleanCourse(c){const s=v=>String(v??"").slice(0,80);return{d:c.d,f:s(c.f),t:s(c.t),c:s(c.c),p:numOrNull(c.p),n:String(c.n??"").slice(0,200),k:+c.k||0,u:+c.u||0};}
+function cleanCourse(c){const s=v=>String(v??"").slice(0,80);return{d:c.d,f:s(c.f),t:s(c.t),c:s(c.c),p:numOrNull(c.p),n:String(c.n??"").slice(0,200),k:+c.k||0,u:+c.u||0,pd:[1,2].includes(+c.pd)?+c.pd:0};}
 function mergeMonth(a,b,k){
   a=a&&typeof a==="object"?a:{};b=b&&typeof b==="object"?b:{};
   const r={c:{},x:{},dir:null,fac:null,ur:null,st:0,mn:"",iu:0,u:Math.max(+a.u||0,+b.u||0)};
@@ -299,7 +307,9 @@ function persist(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 function touch(k){M(k).u=Date.now();dirty.add(k);persist();queueRemote();}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
-function addCourse(o){const id=uid(),now=Date.now(),k=mkey(o.d);M(k).c[id]={d:o.d,f:o.f,t:o.t,c:o.c,p:o.p??null,n:o.n||"",k:now,u:now};delete M(k).x[id];touch(k);return{id,k};}
+function addCourse(o){const id=uid(),now=Date.now(),k=mkey(o.d);M(k).c[id]={d:o.d,f:o.f,t:o.t,c:o.c,p:o.p??null,n:o.n||"",k:now,u:now,pd:o.pd??1};delete M(k).x[id];touch(k);return{id,k};}
+function setDone(k,id,v){const c=S.m[k]&&S.m[k].c[id];if(!c)return;c.pd=v;c.u=Date.now();touch(k);}
+const pendingIn=list=>list.filter(c=>c.pd===1).length;
 function updateCourse(id,oldK,o){
   const old=M(oldK).c[id];if(!old)return;const now=Date.now(),k=mkey(o.d);
   const c=Object.assign({},old,o,{u:now});if(o.d!==old.d)c.k=now;
@@ -420,7 +430,7 @@ async function exportShort(kind){
   const [a,b]=periodRange(kind);const rows=allList().filter(c=>c.d>=a&&c.d<=b);
   const P=[],C=[],pm=new Map(),cm=new Map();const ix=(arr,m,v)=>{if(!m.has(v)){m.set(v,arr.length);arr.push(v);}return m.get(v);};
   const base=parseD(a);
-  const d=rows.map(c=>{const r=[Math.round((parseD(c.d)-base)/864e5),ix(P,pm,c.f),ix(P,pm,c.t),ix(C,cm,c.c)];if(c.n||c.p!=null)r.push(c.n||0);if(c.p!=null)r.push(c.p);return r;});
+  const d=rows.map(c=>{const r=[Math.round((parseD(c.d)-base)/864e5),ix(P,pm,c.f),ix(P,pm,c.t),ix(C,cm,c.c)];if(c.n||c.p!=null||c.pd)r.push(c.n||0);if(c.p!=null||c.pd)r.push(c.p??null);if(c.pd)r.push(c.pd);return r;});
   const m={};for(const k in S.m)if(k>=mkey(a)&&k<=mkey(b)&&S.m[k].iu){const x=S.m[k];m[k]=[x.dir,x.fac,x.st,x.mn,x.iu,x.ur];}
   const bytes=new TextEncoder().encode(JSON.stringify({v:3,a,b,P,C,d,m}));
   const out=window.CompressionStream?await gzB(bytes):bytes;
@@ -432,19 +442,19 @@ async function readShort(txt){
   catch(e){return {err:"Ce code est abîmé. Recopie-le en entier depuis l'autre version."};}
   if(!o||o.v!==3||!Array.isArray(o.d)||!/^\d{4}-\d{2}-\d{2}$/.test(o.a||"")||!/^\d{4}-\d{2}-\d{2}$/.test(o.b||""))return {err:"Ce code ne contient pas de courses."};
   const P=Array.isArray(o.P)?o.P:[],C=Array.isArray(o.C)?o.C:[];const s=v=>String(v??"").slice(0,80);
-  const inc=o.d.filter(r=>Array.isArray(r)&&r.length>=4).map(r=>({d:addDays(o.a,+r[0]||0),f:s(P[r[1]]),t:s(P[r[2]]),c:s(C[r[3]]),n:typeof r[4]==="string"?r[4].slice(0,200):"",p:numOrNull(r[5])})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.d));
+  const inc=o.d.filter(r=>Array.isArray(r)&&r.length>=4).map(r=>({d:addDays(o.a,+r[0]||0),f:s(P[r[1]]),t:s(P[r[2]]),c:s(C[r[3]]),n:typeof r[4]==="string"?r[4].slice(0,200):"",p:numOrNull(r[5]),pd:[1,2].includes(+r[6])?+r[6]:0})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.d));
   const ex=allList().filter(c=>c.d>=o.a&&c.d<=o.b);
   const pool=new Map();ex.forEach(c=>{const k=ckey(c);if(!pool.has(k))pool.set(k,[]);pool.get(k).push(c);});
   const add=[],keep=[];inc.forEach((x,i)=>{const l=pool.get(ckey(x));if(l&&l.length)keep.push([l.shift(),x]);else add.push([x,i]);});
   const del=[];pool.forEach(l=>del.push(...l));
   return {o,inc,ex,add,keep,del};
 }
-const shortDiff=(c,x)=>(c.p??null)!==(x.p??null)||c.f!==x.f||c.t!==x.t||c.c!==x.c||(c.n||"")!==(x.n||"");
+const shortDiff=(c,x)=>(c.p??null)!==(x.p??null)||(c.pd||0)!==(x.pd||0)||c.f!==x.f||c.t!==x.t||c.c!==x.c||(c.n||"")!==(x.n||"");
 function applyShort(r){
   const now=Date.now(),ks=new Set();
-  r.keep.forEach(([c,x])=>{if(shortDiff(c,x)){const t=S.m[c.mk].c[c.id];Object.assign(t,{f:x.f,t:x.t,c:x.c,n:x.n,p:x.p,u:now});ks.add(c.mk);}});
+  r.keep.forEach(([c,x])=>{if(shortDiff(c,x)){const t=S.m[c.mk].c[c.id];Object.assign(t,{f:x.f,t:x.t,c:x.c,n:x.n,p:x.p,pd:x.pd||0,u:now});ks.add(c.mk);}});
   r.del.forEach(c=>{delete S.m[c.mk].c[c.id];S.m[c.mk].x[c.id]=now;ks.add(c.mk);});
-  r.add.forEach(([x,i])=>{const k=mkey(x.d);const id="t"+hash(ckey(x)+"|"+i+"|"+now);M(k).c[id]={d:x.d,f:x.f,t:x.t,c:x.c,p:x.p,n:x.n,k:parseD(x.d).getTime()+i,u:now};ks.add(k);});
+  r.add.forEach(([x,i])=>{const k=mkey(x.d);const id="t"+hash(ckey(x)+"|"+i+"|"+now);M(k).c[id]={d:x.d,f:x.f,t:x.t,c:x.c,p:x.p,n:x.n,pd:x.pd||0,k:parseD(x.d).getTime()+i,u:now};ks.add(k);});
   const om=r.o.m&&typeof r.o.m==="object"?r.o.m:{};
   for(const k in om){if(!/^\d{4}-\d{2}$/.test(k)||!Array.isArray(om[k]))continue;const [dir,fac,st,mn,iu,ur]=om[k];const x=M(k);if((+iu||0)>x.iu){x.dir=numOrNull(dir);x.fac=numOrNull(fac);x.ur=numOrNull(ur);x.st=[0,1,2].includes(+st)?+st:0;x.mn=String(mn??"").slice(0,300);x.iu=+iu;ks.add(k);}}
   ks.forEach(touch);
@@ -510,9 +520,12 @@ function topHTML(){
 function renderTop(){const el=$("#top");if(el)el.innerHTML=topHTML();}
 
 function courseRow(c,opts={}){
-  return `<button class="crow" data-c="${c.mk}|${c.id}"><span class="no">${c.no}</span><span class="mid"><span class="rt" style="display:block">${esc(route(c))}</span><span class="cl" style="display:block">${esc(c.c||"Sans client")}${c.n?" · "+esc(c.n):""}${opts.date?" · "+esc(fmtShort(c.d)):""}</span></span>${c.p!=null?`<span class="pr">${esc(euro(c.p))}</span>`:""}</button>`;
+  const st=c.pd===1?" pend":c.pd===2?" done":"";
+  return `<button class="crow${st}" data-c="${c.mk}|${c.id}"><span class="no">${c.no}</span><span class="mid"><span class="rt" style="display:block">${esc(route(c))}</span><span class="cl" style="display:block">${esc(c.c||"Sans client")}${c.n?" · "+esc(c.n):""}${opts.date?" · "+esc(fmtShort(c.d)):""}</span></span>${c.p!=null?`<span class="pr">${esc(euro(c.p))}</span>`:""}${c.pd===1?'<span class="stt">À valider</span>':c.pd===2?'<span class="stt">✓ Faite</span>':""}</button>`;
 }
-function bindRows(root){root.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const [k,id]=b.dataset.c.split("|");openForm({k,id});});}
+function bindRows(root){root.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const [k,id]=b.dataset.c.split("|");const c=S.m[k]&&S.m[k].c[id];
+  if(c&&c.pd===1){setDone(k,id,2);render();toast("Course validée : "+route(c),()=>{setDone(k,id,1);render();});}
+  else openForm({k,id});});}
 
 function render(){
   renderTabs();deskBadge();
@@ -545,8 +558,9 @@ function viewJour(){
    :`<div class="card stack" style="gap:8px"><h3>Première course</h3><p class="small" style="margin:0">Touche <b>+ Course</b> pour noter ta première course. Tes trajets habituels apparaîtront ensuite ici : un seul appui suffira pour les ajouter. Tu peux aussi importer tes notes de l'appli Notes dans <b>Réglages</b>.</p></div>`}
   <section class="stack" style="gap:8px">
     <div class="label" style="display:flex;justify-content:space-between"><span>Courses du jour</span>${total?`<span>${esc(euro(total))}</span>`:""}</div>
+    ${pendingIn(day)?`<div class="pendnote">${plural(pendingIn(day),"course")} à valider : touche-${pendingIn(day)>1?"les":"la"} quand ${pendingIn(day)>1?"elles sont faites":"elle est faite"}.</div>`:""}
     <div class="list" id="dayList">${day.length?day.map(c=>courseRow(c)).join(""):'<div class="empty">Aucune course notée ce jour.</div>'}</div>
-    ${day.length?'<p class="small" style="margin:0">Le numéro suit le mois, comme dans tes notes. Touche une course pour la modifier.</p>':""}
+    ${day.length?'<p class="small" style="margin:0">Rouge = à faire, vert = faite. Touche une course rouge pour la valider, une course verte pour la modifier.</p>':""}
   </section></div>`;
 }
 function bindJour(){
@@ -570,7 +584,7 @@ function viewMois(){
   const ml=monthList(selMonth),days=new Set(ml.map(c=>c.d)).size,tot=ml.reduce((s,c)=>s+(c.p||0),0);
   return `<div class="stack v-mois">
   <div class="nav"><button class="arrow" id="mPrev" aria-label="Mois précédent">‹</button><div class="t"><button class="ttl" id="pick" aria-label="Choisir un mois"><h2>${esc(monthLabel(selMonth))}</h2><span class="car" aria-hidden="true">▾</span></button></div><button class="arrow" id="mNext" aria-label="Mois suivant">›</button></div>
-  <div class="card sum"><div><span class="v">${ml.length}</span><span class="k">courses</span></div><div><span class="v">${days}</span><span class="k">jours travaillés</span></div><div><span class="v">${days?(ml.length/days).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par jour</span></div>${tot?`<div><span class="v">${esc(euro(tot))}</span><span class="k">prix notés</span></div>`:""}</div>
+  <div class="card sum"><div><span class="v">${ml.length}</span><span class="k">courses</span></div><div><span class="v">${days}</span><span class="k">jours travaillés</span></div><div><span class="v">${days?(ml.length/days).toLocaleString("fr-FR",{maximumFractionDigits:1}):0}</span><span class="k">par jour</span></div>${pendingIn(ml)?`<div><span class="v" style="color:var(--mark)">${pendingIn(ml)}</span><span class="k">à valider</span></div>`:""}${tot?`<div><span class="v">${esc(euro(tot))}</span><span class="k">prix notés</span></div>`:""}</div>
   ${ml.length?`<input class="search" id="q" type="search" placeholder="Chercher un client ou une ville" value="${esc(query)}" autocomplete="off">`:""}
   <div id="mList"></div></div>`;
 }
@@ -969,6 +983,7 @@ function openForm(ref,defDate){
       <div class="field"><label for="fp">Prix (€, facultatif)</label><input class="inp" id="fp" inputmode="decimal" value="${c.p!=null?String(c.p).replace(".",","):""}" placeholder="—"></div>
       <div class="field" style="flex:2"><label for="fn">Note (facultatif)</label><input class="inp" id="fn" value="${esc(c.n)}" placeholder="attente, colis…"></div>
     </div>
+    ${edit?`<label class="chk"><input type="checkbox" id="fdone" ${c.pd===1?"":"checked"}> Course faite</label>`:""}
     <div class="msg bad" id="fmsg"></div>
     <button class="btn block" type="submit">${edit?"Enregistrer":"Ajouter la course"}</button>
     ${edit?'<div id="delZone"><button type="button" class="btn ghost block" id="fdel" style="color:var(--bad)">Supprimer cette course</button></div>':""}
@@ -997,6 +1012,7 @@ function openForm(ref,defDate){
     if(!f&&!t){$("#fmsg").textContent="Indique au moins le départ ou l'arrivée.";return;}
     if(pv&&p==null){$("#fmsg").textContent="Le prix doit être un nombre, par exemple 35 ou 42,50.";return;}
     const o={d,f,t,c:cl,p,n:$("#fn").value.trim().slice(0,200)};
+    if(edit){const done=$("#fdone").checked;o.pd=done?(edit.pd?2:0):1;}
     closeSheet();
     if(edit){
       if(typed&&norm(typed)===norm(edit.c)&&typed!==edit.c){o.c=typed;updateCourse(ref.id,ref.k,o);const n=renameClientAll(norm(typed),typed);render();toast(`Nom corrigé : « ${typed} » sur ${plural(n+1,"course")}.`);}
